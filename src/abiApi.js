@@ -1,10 +1,11 @@
 import axios from 'axios'
+const abiURL = import.meta.env.VITE_ABI_URL
 
 const api = axios.create({
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
-  baseURL: 'https://abi-ttt.onrender.com'
+  baseURL: abiURL
 })
 
 export const postModel = (model, data, headers) => {

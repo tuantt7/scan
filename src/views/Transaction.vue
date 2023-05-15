@@ -1,7 +1,8 @@
 <template>
   <div class="detail-page">
     <strong>Transaction Details</strong>
-    <div class="detail card">
+    <el-skeleton v-if="!detail" :rows="6" animated />
+    <div v-else class="detail card">
       <div class="row">
         <span class="second">Transaction Hash:</span>
         {{ detail?.hash }}
@@ -13,7 +14,8 @@
         <span v-else-if="!status && !detail?.blockNumber" v-loading="true">Pending</span>
       </div>
       <div class="row">
-        <span class="second">Block:</span> <span class="link">{{ detail?.blockNumber }}</span>
+        <span class="second">Block:</span>
+        <span class="link" @click="goToBlock(detail.blockNumber)">{{ detail?.blockNumber }}</span>
       </div>
       <div class="row">
         <span class="second">Timestamp:</span>
@@ -21,12 +23,12 @@
       </div>
       <div class="row">
         <span class="second">From:</span>
-        <span class="link">{{ detail?.from }}</span>
+        <span class="link" @click="goToAddress(detail.from)">{{ detail?.from }}</span>
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <span class="link">{{ detail?.to || detail2?.contractAddress }} </span>
-        <span v-if="detail2?.contractAddress" class="ml-10">Contract created</span>
+        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)">{{ detail?.to || detail2?.contractAddress }} </span>
+        <span v-if="detail2?.contractAddress" class="ml-10">Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon></span>
       </div>
       <div class="row">
         <span class="second">Value:</span>
@@ -41,12 +43,12 @@
         {{ gas }}
       </div>
     </div>
-    <div class="detail card">
+    <div v-if="detail" class="detail card">
       <div class="row">
         <span class="second">Gas Limit & Usage by Txn :</span>
-        {{ detail?.gas }}
+        {{ formatNumber(detail?.gas) }}
         <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }"
-          >| {{ detail2?.gasUsed }} ({{ percent }})</span
+          >| {{ formatNumber(detail2?.gasUsed) }} ({{ percent }})</span
         >
       </div>
       <div class="row">
@@ -104,7 +106,7 @@
   <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '../../src/abiApi.js'
+import { getModel } from '../abiApi.js'
 export default {
   name: 'HomePage',
   data() {
@@ -124,9 +126,9 @@ export default {
     }
   },
   async mounted() {
-    const { hash } = this.$route.query
+    const { id } = this.$route.params
 
-    if (hash) this.getDetailTran(hash)
+    if (id) this.getDetailTran(id)
   },
   computed: {
     to() {
@@ -151,6 +153,15 @@ export default {
     }
   },
   methods: {
+    formatNumber(num) {
+      return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+    },
+    goToBlock(block) {
+      this.$router.push({ name: 'block', params: { id: block } })
+    },
+    goToAddress(address) {
+      this.$router.push({ name: 'address', params: { id: address } })
+    },
     decodeInput(text) {
       return web3.utils.hexToAscii(text)
     },
@@ -166,7 +177,6 @@ export default {
     async getDetailTran(hash) {
       try {
         const result = await web3.eth.getTransaction(hash)
-        console.log(result)
         const result2 = await web3.eth.getTransactionReceipt(hash)
         const block = await web3.eth.getBlock(result.blockNumber)
         this.timeStamp = `${moment(moment.unix(block.timestamp)).fromNow()} (${moment
@@ -263,7 +273,7 @@ textarea {
   border-radius: 8px;
 }
 
-::v-deep .el-tabs__nav-wrap::after {
+.el-tabs ::v-deep(.el-tabs__nav-wrap::after) {
   background-color: #fff;
 }
 </style>
