@@ -1,8 +1,9 @@
 import axios from 'axios'
+const sepoliaURL = import.meta.env.VITE_SEPOLIA_URL
 
 const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
-  baseURL: 'https://api-sepolia.etherscan.io/'
+  baseURL: sepoliaURL
 })
 
 export const postModel = (model, data, headers) => {

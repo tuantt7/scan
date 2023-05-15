@@ -1,102 +1,92 @@
 <template>
   <div class="detail-page">
-    <strong>Transaction Details</strong>
-    <div class="detail card">
+    <strong>Block Details</strong>
+
+    <el-skeleton v-if="!detail" :rows="6" animated />
+    <div v-else class="detail card">
       <div class="row">
-        <span class="second">Transaction Hash:</span>
-        {{ detail?.hash }}
+        <span class="second">Block:</span>
+        {{ detail?.number }}
+
+        <el-tooltip content="View previous block" placement="top">
+          <div class="btn-icon -left" @click="viewPreBlock">
+            <el-icon><ArrowLeft /></el-icon>
+          </div>
+        </el-tooltip>
+        <el-tooltip content="View next block" placement="top">
+          <div class="btn-icon" @click="viewNextBlock">
+            <el-icon><ArrowRight /></el-icon>
+          </div>
+        </el-tooltip>
       </div>
+
       <div class="row">
-        <span class="second">Status: </span>
-        <el-tag v-if="status && detail?.blockNumber" class="ml-2" type="success"> Success</el-tag>
-        <el-tag v-else-if="!status && detail?.blockNumber" class="ml-2" type="danger"> Fail</el-tag>
-        <span v-else-if="!status && !detail?.blockNumber" v-loading="true">Pending</span>
+        <span class="second">Status:</span>
+        <el-tag v-if="finalized" type="success"
+          >Finalized <el-icon><CircleCheck /></el-icon>
+        </el-tag>
+        <el-tag v-else type="info">Not Finalized</el-tag>
       </div>
-      <div class="row">
-        <span class="second">Block:</span> <span class="link">{{ detail?.blockNumber }}</span>
-      </div>
+
       <div class="row">
         <span class="second">Timestamp:</span>
         {{ timeStamp }}
       </div>
+
       <div class="row">
-        <span class="second">From:</span>
-        <span class="link">{{ detail?.from }}</span>
-      </div>
-      <div class="row">
-        <span class="second">To:</span>
-        <span class="link">{{ detail?.to || detail2?.contractAddress }} </span>
-        <span v-if="detail2?.contractAddress" class="ml-10">Contract created</span>
-      </div>
-      <div class="row">
-        <span class="second">Value:</span>
-        {{ value }}
-      </div>
-      <div class="row">
-        <span class="second">Transaction Fee:</span>
-        {{ fee }}
-      </div>
-      <div class="row">
-        <span class="second">Gas Price:</span>
-        {{ gas }}
-      </div>
-    </div>
-    <div class="detail card">
-      <div class="row">
-        <span class="second">Gas Limit & Usage by Txn :</span>
-        {{ detail?.gas }}
-        <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }"
-          >| {{ detail2?.gasUsed }} ({{ percent }})</span
+        <span class="second">Transactions:</span>
+        <span v-if="detail?.transactions?.length"
+          >{{ formatNumber(detail.transactions?.length) }} transactions</span
         >
       </div>
+
       <div class="row">
-        <span class="second">Gas Fee:</span>
-        MAX: {{ toGwei(detail?.maxFeePerGas) }} Gwei | Max Priority:
-        {{ toGwei(detail?.maxPriorityFeePerGas) }} Gwei
+        <span class="second">Withdrawals:</span>
+        <span v-if="detail?.withdrawals?.length"
+          >{{ formatNumber(detail.withdrawals?.length) }} withdrawals</span
+        >
       </div>
+
       <div class="row">
-        <span class="second">Other Attributes:</span>
-        Nonce: <el-tag type="info" class="ml-5"> {{ detail?.nonce }}</el-tag>
-        <pre> & </pre>
-        Position In Block: <el-tag type="info" class="ml-5"> {{ detail?.transactionIndex }}</el-tag>
+        <span class="second">Fee Recipient:</span>
+        <span v-if="detail?.miner" class="link" @click="goToAddress(detail.miner)">{{
+          detail.miner
+        }}</span>
       </div>
+
       <div class="row">
-        <span class="second">Input Data:</span>
-        <div class="input-data">
-          <el-tabs v-model="activeTab" class="demo-tabs">
-            <el-tab-pane label="Originnal" name="originnal">
-              <textarea
-                v-if="detail && detail.input"
-                v-model="detail.input"
-                disabled
-                rows="5"
-              ></textarea>
-            </el-tab-pane>
-            <el-tab-pane label="Decode" name="decode">
-              <span v-if="decodeContract && decodeContract.name"
-                >Function: <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag></span
-              >
-              <table v-if="decodeContract && decodeContract.name">
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Data</th>
-                </tr>
-                <tr v-for="item in decodeContract.params" :key="item.name">
-                  <td>{{ item.name }}</td>
-                  <td>{{ item.type }}</td>
-                  <td>{{ item.value }}</td>
-                </tr>
-              </table>
-              <textarea
-                v-else-if="detail && detail.input"
-                :value="decodeInput(detail.input)"
-                disabled
-                rows="5"
-              ></textarea>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
+        <span class="second">Total Difficulty:</span>
+        <span v-if="detail?.totalDifficulty">{{ formatNumber(detail.totalDifficulty) }}</span>
+      </div>
+
+      <div class="row">
+        <span class="second">Size:</span>
+        <span v-if="detail?.size">{{ formatNumber(detail.size) }} bytes</span>
+      </div>
+
+      <div class="row">
+        <span class="second">Gas Used:</span>
+        <span v-if="detail?.gasUsed">{{ formatNumber(detail.gasUsed) }} ({{ percent }})</span>
+      </div>
+
+      <div class="row">
+        <span class="second"> Gas Limit:</span>
+        <span v-if="detail?.gasLimit">{{ formatNumber(detail.gasLimit) }}</span>
+      </div>
+
+      <div class="row">
+        <span class="second">Base Fee Per Gas:</span>
+        <span v-if="detail?.baseFeePerGas"
+          >{{ formatNumber(detail.baseFeePerGas) }} wei ({{
+            toGwei(detail.baseFeePerGas)
+          }}
+          Gwei)</span
+        >
+      </div>
+
+      <div class="row">
+        <span class="second"> Parent Hash:</span>
+        <span v-if="detail?.parentHash">{{ detail.parentHash }}</span>
       </div>
     </div>
   </div>
@@ -104,8 +94,7 @@
   <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '../../src/abiApi.js'
-import { getModel as getAbi } from '../../src/api.js'
+
 export default {
   name: 'HomePage',
   data() {
@@ -125,18 +114,17 @@ export default {
     }
   },
   async mounted() {
-    const { d } = this.$route.query
-		console.log(d);
+    const { id } = this.$route.params
 
-    if (d) this.getDetailBlock(d)
+    if (id) this.getDetailBlock(id)
   },
   computed: {
     to() {
       return this.detail?.to || this.detail2?.contractAddress
     },
     percent() {
-      const percent = (this.detail2.gasUsed / this.detail.gas) * 100
-      return percent.toString().slice(0, 5) + ' %'
+      const percent = (this.detail.gasUsed / this.detail.gasLimit) * 100
+      return percent.toString().slice(0, 4) + ' %'
     },
     value() {
       const value = this.detail?.value || 0
@@ -153,14 +141,20 @@ export default {
     }
   },
   methods: {
-		async getDetailBlock(block) {
-			try {
-				const result = await web3.eth.getBlock(block)
-				console.log(result);
-			} catch (error) {
-				console.log(error);
-			}
-		},
+    viewNextBlock() {
+      const block = this.detail.number + 1
+      this.$router.push({ name: 'block', params: { id: block } })
+    },
+    viewPreBlock() {
+      const block = this.detail.number - 1
+      this.$router.push({ name: 'block', params: { id: block } })
+    },
+    formatNumber(num) {
+      return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+    },
+    goToAddress(address) {
+      this.$router.push({ name: 'address', params: { id: address } })
+    },
     decodeInput(text) {
       return web3.utils.hexToAscii(text)
     },
@@ -173,38 +167,19 @@ export default {
     timeAge(timeStamp) {
       return moment(moment.unix(timeStamp)).fromNow()
     },
-    async getDetailTran(hash) {
+    async getDetailBlock(num) {
       try {
-        const result = await web3.eth.getTransaction(hash)
+        const result = await web3.eth.getBlock(num)
+        const latestFinalizedBlock = await web3.eth.getBlock('finalized')
+        this.finalized = num <= latestFinalizedBlock.number
+        this.detail = Object.assign({}, result)
         console.log(result)
-        const result2 = await web3.eth.getTransactionReceipt(hash)
-        const block = await web3.eth.getBlock(result.blockNumber)
-        this.timeStamp = `${moment(moment.unix(block.timestamp)).fromNow()} (${moment
-          .unix(block.timestamp)
+        this.timeStamp = `${moment(moment.unix(result.timestamp)).fromNow()} (${moment
+          .unix(result.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
-        this.status = result2.status
-        this.detail = result
-        this.detail2 = result2
-        if (!result.blockNumber) {
-          setTimeout(() => {
-            this.getDetailTran(hash)
-          }, 1000)
-        }
-        if (result.to) {
-          const addressCode = await web3.eth.getCode(result.to)
-          if (addressCode !== '0x') {
-            const params = {
-              contract: result.to,
-              hx: result.input
-            }
-            const res = await getModel('abi', params)
-            if (res && res.data.status == 1) {
-              this.decodeContract = res.data
-            }
-          }
-        }
       } catch (error) {
         console.log(error)
+        this.$store.dispatch('setError', ERROR_BLOCK)
       }
     }
   }
@@ -273,8 +248,24 @@ textarea {
   border-radius: 8px;
 }
 
-::v-deep .el-tabs__nav-wrap::after {
+.el-tabs ::v-deep(.el-tabs__nav-wrap::after) {
   background-color: #fff;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 24px;
+  line-height: unset;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &.-left {
+    margin-left: 10px;
+    margin-right: 5px;
+  }
 }
 </style>
   
