@@ -10,22 +10,22 @@
         <strong>More Info</strong>
         <p>LAST TXN SENT</p>
         <div class="flex">
-          <small v-if="transactionList.length" class="hash link small">{{
-            transactionList[transactionList.length - 1].hash
+          <small v-if="transactions.length" class="hash link small">{{
+            transactions[transactions.length - 1].hash
           }}</small>
-          <span v-if="transactionList.length">{{
-            timeFrom(transactionList[transactionList.length - 1].timeStamp)
+          <span v-if="transactions.length">{{
+            timeFrom(transactions[transactions.length - 1].timeStamp)
           }}</span>
         </div>
         <p>FIRST TXN SENT</p>
         <div class="flex">
-          <small v-if="transactionList.length" class="hash link small">{{
-            transactionList[0].hash
+          <small v-if="transactions.length" class="hash link small">{{
+            transactions[0].hash
           }}</small>
-          <span v-if="transactionList.length">{{ timeFrom(transactionList[0].timeStamp) }}</span>
+          <span v-if="transactions.length">{{ timeFrom(transactions[0].timeStamp) }}</span>
         </div>
       </div>
-      Total {{ transactionList.length }} transactions
+      Total {{ transactions.length }} transactions
     </div>
     <div class="transaction-list">
       <div class="transaction">
@@ -36,9 +36,9 @@
         <strong class="hash">From</strong>
         <strong class="hash">To</strong>
         <strong class="hash">Value</strong>
-        <strong class="hash">Txn Fee</strong>
+        <!-- <strong class="hash">Txn Fee</strong> -->
       </div>
-      <div class="transaction" v-for="tran in transactions" :key="tran.timeStamp">
+      <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
         <span class="hash link" @click="detailTran(tran.hash)">{{ tran.hash }}</span>
         <span class="hash">{{ tran.methodId }}</span>
         <span class="hash"
@@ -54,14 +54,14 @@
         <span class="hash">{{ tran.from }}</span>
         <span class="hash">{{ tran.to }}</span>
         <span class="hash">{{ value(tran.value) }}</span>
-        <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span>
+        <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
       </div>
       <el-pagination
-        v-model:current-page="dataPage"
+        :current-page="dataPage"
         @current-change="changePage"
         background
         layout="prev, pager, next"
-        :total="transactionList.length"
+        :total="transactions.length"
         :page-size="50"
         class="my-10"
       />
@@ -72,7 +72,7 @@
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
-import { usePageStore } from '../stores/page'
+import { useAddressStore } from '../stores/address.js'
 import { getModel } from '../api.js'
 const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
 export default {
@@ -83,21 +83,20 @@ export default {
       page: 1,
       offset: 10000,
       total: 0,
-      transactionList: [],
       startblock: 0,
       endblock: 99999999
     }
   },
   computed: {
-    ...mapState(usePageStore, ['dataPage']),
-    transactions() {
-      const reverse = [...this.transactionList]
+    ...mapState(useAddressStore, ['dataPage', 'transactions']),
+    transactionsList() {
+      const reverse = [...this.transactions]
       return reverse.filter(
         (item, index) => index >= this.dataPage * 50 - 50 && index <= this.dataPage * 50 - 1
       )
     },
     totalPage() {
-      return Math.ceil(this.transactionList?.length / 50)
+      return Math.ceil(this.transactions?.length / 50)
     }
   },
   watch: {
@@ -117,7 +116,7 @@ export default {
     goToBlock(block) {
       this.$router.push({ name: 'block', params: { id: block } })
     },
-    ...mapActions(usePageStore, ['setPage']),
+    ...mapActions(useAddressStore, ['setPage', 'setTransactions', 'pushTransactions']),
     changePage(page) {
       this.setPage(page)
     },
@@ -154,33 +153,31 @@ export default {
         apikey: sepoliaKey
       }
       const result1 = await getModel('api', params)
-      this.transactionList = [
-        ...this.transactionList,
-        ...JSON.parse(JSON.stringify(result1.data.result))
-      ]
+      this.pushTransactions(result1.data.result)
+      result1.data.result.forEach((element) => {
+        delete element.confirmations
+        delete element.contractAddress
+        delete element.functionName
+        delete element.input
+        delete element.isError
+        delete element.transactionIndex
+        delete element.nonce
+        delete element.txreceipt_status
+        delete element.blockHash
+        delete element.cumulativeGasUsed
+      })
+
       if (result1.data.result.length > 1) {
-        this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
-        this.getTotalTransactions(address)
+        setTimeout(() => {
+          this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
+          this.getTotalTransactions(address)
+        }, 300)
+      } else {
+        const transactionList = this.transactions.filter(
+          (obj, index) => this.transactions.findIndex((item) => item.hash === obj.hash) === index
+        )
+        this.setTransactions(transactionList)
       }
-      this.transactionList = this.transactionList.filter(
-        (obj, index) => this.transactionList.findIndex((item) => item.hash === obj.hash) === index
-      )
-    },
-    async getFirstAndLastTXN() {
-      // const page = Math.ceil(this.total / 100)
-      const params = {
-        module: 'account',
-        action: 'txlist',
-        address: '0x00fDe51cC2EE327F2cB7f85EF13947f4d6E4574F',
-        startblock: 0,
-        endblock: 99999999,
-        page: 1,
-        offset: 10000,
-        sort: 'asc',
-        apikey: sepoliaKey
-      }
-      const result1 = await getModel('api', params)
-      this.transactionList = JSON.parse(JSON.stringify(result1.data.result))
     }
   }
 }
@@ -206,7 +203,7 @@ export default {
 }
 
 .hash {
-  width: 150px;
+  width: 14%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
