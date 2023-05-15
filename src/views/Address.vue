@@ -88,14 +88,6 @@ export default {
       endblock: 99999999
     }
   },
-  mounted() {
-    const { id } = this.$route.params
-
-    if (id) {
-      this.getAccountInformation(id)
-      this.getTotalTransactions(id)
-    }
-  },
   computed: {
     ...mapState(usePageStore, ['dataPage']),
     transactions() {
@@ -106,6 +98,16 @@ export default {
     },
     totalPage() {
       return Math.ceil(this.transactionList?.length / 50)
+    }
+  },
+  watch: {
+    '$route.params.id': {
+      handler(id) {
+        this.getAccountInformation(id)
+        this.getTotalTransactions(id)
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
