@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./built",
+    "allowJs": true,
+    "target": "es5",
+    "baseUrl": ".",
+    "paths": {
+      "$libs": ["src/libs"],
+      "$libs/*": ["src/libs/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "allowJs": true,
+  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.svelte"],
+  "exclude": ["node_modules", "**/node_modules", "dist"]
+}
