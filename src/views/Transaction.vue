@@ -27,8 +27,12 @@
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)">{{ detail?.to || detail2?.contractAddress }} </span>
-        <span v-if="detail2?.contractAddress" class="ml-10">Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon></span>
+        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)"
+          >{{ detail?.to || detail2?.contractAddress }}
+        </span>
+        <span v-if="detail2?.contractAddress" class="ml-10"
+          >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
+        ></span>
       </div>
       <div class="row">
         <span class="second">Value:</span>
@@ -125,11 +129,6 @@ export default {
       activeTab: 'originnal'
     }
   },
-  async mounted() {
-    const { id } = this.$route.params
-
-    if (id) this.getDetailTran(id)
-  },
   computed: {
     to() {
       return this.detail?.to || this.detail2?.contractAddress
@@ -150,6 +149,15 @@ export default {
     gas() {
       const gas = this.detail?.gasPrice || 0
       return `${this.toGwei(gas)} Gwei ( ${this.toETH(gas)} ETH )`
+    }
+  },
+  watch: {
+    '$route.params.id': {
+      handler(id) {
+        this.getDetailTran(id)
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {

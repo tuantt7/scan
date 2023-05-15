@@ -2,7 +2,7 @@
   <div class="detail-page">
     <strong>Block Details</strong>
 
-    <el-skeleton v-if="!detail" :rows="6" animated />
+    <el-skeleton v-if="loading" :rows="6" animated />
     <div v-else class="detail card">
       <div class="row">
         <span class="second">Block:</span>
@@ -110,13 +110,9 @@ export default {
       timeStamp: null,
       detail2: null,
       decodeContract: null,
-      activeTab: 'originnal'
+      activeTab: 'originnal',
+      loading: true
     }
-  },
-  async mounted() {
-    const { id } = this.$route.params
-
-    if (id) this.getDetailBlock(id)
   },
   computed: {
     to() {
@@ -138,6 +134,15 @@ export default {
     gas() {
       const gas = this.detail?.gasPrice || 0
       return `${this.toGwei(gas)} Gwei ( ${this.toETH(gas)} ETH )`
+    }
+  },
+  watch: {
+    '$route.params.id': {
+      handler(id) {
+        this.getDetailBlock(id)
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
@@ -169,14 +174,15 @@ export default {
     },
     async getDetailBlock(num) {
       try {
+        this.loading = true
         const result = await web3.eth.getBlock(num)
         const latestFinalizedBlock = await web3.eth.getBlock('finalized')
         this.finalized = num <= latestFinalizedBlock.number
         this.detail = Object.assign({}, result)
-        console.log(result)
         this.timeStamp = `${moment(moment.unix(result.timestamp)).fromNow()} (${moment
           .unix(result.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
+        this.loading = false
       } catch (error) {
         console.log(error)
         this.$store.dispatch('setError', ERROR_BLOCK)
