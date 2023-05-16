@@ -20,7 +20,7 @@
       </div>
     </div>
     <el-skeleton v-if="loading" :rows="6" animated />
-    <div v-else class="transaction-list card">
+    <div v-else class="transaction-list">
       Last {{ transactions.length }} transactions
       <div class="transaction">
         <strong class="hash">Txn Hash</strong>
@@ -62,7 +62,7 @@
     </div>
   </div>
 </template>
-<script>
+  <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
@@ -96,14 +96,31 @@ export default {
   watch: {
     '$route.params.id': {
       handler(id) {
-        this.getAccountInformation(id)
-        this.getTotalTransactions(id)
+        this.getTransactions(id)
+        this.checkTransactionCount(id, id)
       },
       deep: true,
       immediate: true
     }
   },
   methods: {
+    async checkTransactionCount(startBlockNumber, endBlockNumber) {
+      let transactions = []
+
+      for (var i = startBlockNumber; i <= endBlockNumber; i++) {
+        let block = await web3.eth.getBlock(i)
+        if (block != null) {
+          if (block.transactions != null && block.transactions.length != 0) {
+            transactions = transactions.concat(block.transactions)
+          }
+        }
+      }
+      console.log(transactions)
+    },
+    async getTransactions(id) {
+      const result = await web3.eth.getBlock(id, 0)
+      console.log(result)
+    },
     timeFrom(time) {
       return moment.unix(time).format('DD/MM/YYYY HH:mm:ss')
     },
@@ -149,36 +166,11 @@ export default {
       const result1 = await getModel('api', params)
       this.setTransactions(result1.data.result)
       this.loading = false
-      // result1.data.result.forEach((element) => {
-      //   delete element.confirmations
-      //   delete element.contractAddress
-      //   delete element.functionName
-      //   delete element.input
-      //   delete element.isError
-      //   delete element.transactionIndex
-      //   delete element.nonce
-      //   delete element.txreceipt_status
-      //   delete element.blockHash
-      //   delete element.cumulativeGasUsed
-      // })
-
-      // if (result1.data.result.length > 1) {
-      //   setTimeout(() => {
-      //     this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
-      //     this.getTotalTransactions(address)
-      //     this.setTime()
-      //   }, 300)
-      // } else {
-      //   const transactionList = this.transactions.filter(
-      //     (obj, index) => this.transactions.findIndex((item) => item.hash === obj.hash) === index
-      //   )
-      //   this.setTransactions(transactionList)
-      // }
     }
   }
 }
 </script>
-<style lang="scss" scoped>
+  <style lang="scss" scoped>
 .home-page {
   max-width: 1200px;
   margin: auto;
@@ -218,3 +210,4 @@ export default {
   margin-top: 20px;
 }
 </style>
+  
