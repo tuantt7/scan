@@ -20,45 +20,47 @@
       </div>
     </div>
     <el-skeleton v-if="loading" :rows="6" animated />
-    <div v-else class="transaction-list card">
-      Last {{ transactions.length }} transactions
-      <div class="transaction">
-        <strong class="hash">Txn Hash</strong>
-        <strong class="hash">Method</strong>
-        <strong class="hash">Block</strong>
-        <strong class="hash">Age</strong>
-        <strong class="hash">From</strong>
-        <strong class="hash">To</strong>
-        <strong class="hash">Value</strong>
-        <!-- <strong class="hash">Txn Fee</strong> -->
+    <div v-else class="list">
+      <div class="transaction-list card">
+        Last {{ transactions.length }} transactions
+        <div class="transaction">
+          <strong class="hash">Txn Hash</strong>
+          <strong class="hash">Method</strong>
+          <strong class="hash">Block</strong>
+          <strong class="hash">Age</strong>
+          <strong class="hash">From</strong>
+          <strong class="hash">To</strong>
+          <strong class="hash">Value</strong>
+          <!-- <strong class="hash">Txn Fee</strong> -->
+        </div>
+        <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
+          <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
+          <span class="hash">{{ tran.methodId }}</span>
+          <span class="hash"
+            ><span class="link" @click="goToBlock(tran.blockNumber)">{{
+              tran.blockNumber
+            }}</span></span
+          >
+          <span class="hash">
+            <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
+              <span>{{ timeAge(tran.timeStamp) }}</span>
+            </el-tooltip>
+          </span>
+          <span class="hash">{{ tran.from }}</span>
+          <span class="hash">{{ tran.to }}</span>
+          <span class="hash">{{ value(tran.value) }}</span>
+          <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
+        </div>
+        <el-pagination
+          :current-page="dataPage"
+          @current-change="changePage"
+          background
+          layout="prev, pager, next"
+          :total="transactions.length"
+          :page-size="50"
+          class="my-10"
+        />
       </div>
-      <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
-        <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
-        <span class="hash">{{ tran.methodId }}</span>
-        <span class="hash"
-          ><span class="link" @click="goToBlock(tran.blockNumber)">{{
-            tran.blockNumber
-          }}</span></span
-        >
-        <span class="hash">
-          <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
-            <span>{{ timeAge(tran.timeStamp) }}</span>
-          </el-tooltip>
-        </span>
-        <span class="hash">{{ tran.from }}</span>
-        <span class="hash">{{ tran.to }}</span>
-        <span class="hash">{{ value(tran.value) }}</span>
-        <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
-      </div>
-      <el-pagination
-        :current-page="dataPage"
-        @current-change="changePage"
-        background
-        layout="prev, pager, next"
-        :total="transactions.length"
-        :page-size="50"
-        class="my-10"
-      />
     </div>
   </div>
 </template>
@@ -183,11 +185,12 @@ export default {
   max-width: 1200px;
   margin: auto;
   margin-top: 20px;
+  overflow: hidden;
 }
 
 .over-view {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: calc(50% - 10px) calc(50% - 10px);
   gap: 20px;
 }
 
@@ -199,7 +202,7 @@ export default {
 }
 
 .hash {
-  width: 14%;
+  width: 140px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -214,7 +217,13 @@ export default {
   display: flex;
   align-items: center;
 }
+
 .transaction-list {
   margin-top: 20px;
+  min-width: 1000px;
+}
+
+.list {
+  overflow: scroll;
 }
 </style>

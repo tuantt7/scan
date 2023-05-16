@@ -1,71 +1,50 @@
 <template>
   <div class="home-page">
-    <div class="over-view">
-      <div class="balance card">
-        <strong>Overview</strong>
-        <p>ETH BALANCE</p>
-        <small>{{ balance }} ETH</small>
-      </div>
-      <div class="info card">
-        <strong>More Info</strong>
-        <p>LAST TXN SENT</p>
-        <div class="flex">
-          <small v-if="transactions.length" class="hash link small">{{
-            transactions[transactions.length - 1].hash
-          }}</small>
-          <span v-if="transactions.length">{{
-            timeFrom(transactions[transactions.length - 1].timeStamp)
-          }}</span>
-        </div>
-      </div>
-    </div>
     <el-skeleton v-if="loading" :rows="6" animated />
-    <div v-else class="transaction-list">
-      Last {{ transactions.length }} transactions
-      <div class="transaction">
-        <strong class="hash">Txn Hash</strong>
-        <strong class="hash">Method</strong>
-        <strong class="hash">Block</strong>
-        <strong class="hash">Age</strong>
-        <strong class="hash">From</strong>
-        <strong class="hash">To</strong>
-        <strong class="hash">Value</strong>
-        <!-- <strong class="hash">Txn Fee</strong> -->
+    <div v-else class="list">
+      <div class="transaction-list">
+        <span>{{ transactions.length }} transactions from block {{ $route.params.id }}</span>
+        <div class="transaction">
+          <strong class="hash">Txn Hash</strong>
+          <strong class="hash">Block</strong>
+          <strong class="hash">Age</strong>
+          <strong class="hash">From</strong>
+          <strong class="hash">To</strong>
+          <strong class="hash">Value</strong>
+          <!-- <strong class="hash">Txn Fee</strong> -->
+        </div>
+        <div class="transaction" v-for="tran in transactionsDetail" :key="tran.hash">
+          <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
+          <span class="hash"
+            ><span class="link" @click="goToBlock(tran.blockNumber)">{{
+              tran.blockNumber
+            }}</span></span
+          >
+          <span class="hash">
+            <el-tooltip :content="timeFrom(block.timestamp)" placement="top">
+              <span>{{ timeAge(block.timestamp) }}</span>
+            </el-tooltip>
+          </span>
+          <span class="hash">{{ tran.from }}</span>
+          <span class="hash">{{ tran.to }}</span>
+          <span class="hash">{{ value(tran.value) }}</span>
+        </div>
+        <el-pagination
+          :current-page="page"
+          @current-change="(val) => (page = val)"
+          background
+          layout="prev, pager, next"
+          :total="transactions.length"
+          :page-size="10"
+          class="my-10"
+        />
       </div>
-      <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
-        <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
-        <span class="hash">{{ tran.methodId }}</span>
-        <span class="hash"
-          ><span class="link" @click="goToBlock(tran.blockNumber)">{{
-            tran.blockNumber
-          }}</span></span
-        >
-        <span class="hash">
-          <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
-            <span>{{ timeAge(tran.timeStamp) }}</span>
-          </el-tooltip>
-        </span>
-        <span class="hash">{{ tran.from }}</span>
-        <span class="hash">{{ tran.to }}</span>
-        <span class="hash">{{ value(tran.value) }}</span>
-        <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
-      </div>
-      <el-pagination
-        :current-page="dataPage"
-        @current-change="changePage"
-        background
-        layout="prev, pager, next"
-        :total="transactions.length"
-        :page-size="50"
-        class="my-10"
-      />
     </div>
   </div>
 </template>
   <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '../stores/address.js'
 import { getModel } from '../api.js'
 const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
@@ -78,48 +57,49 @@ export default {
       total: 0,
       startblock: 0,
       endblock: 99999999,
-      loading: true
+      loading: true,
+      transactions: [],
+      transactionsDetail: [],
+      block: {}
     }
   },
   computed: {
-    ...mapState(useAddressStore, ['dataPage', 'transactions', 'tranLength', 'offset', 'time']),
-    transactionsList() {
-      const reverse = [...this.transactions]
-      return reverse.filter(
-        (item, index) => index >= this.dataPage * 50 - 50 && index <= this.dataPage * 50 - 1
-      )
-    },
     totalPage() {
-      return Math.ceil(this.transactions?.length / 50)
+      return Math.ceil(this.transactions?.length / 10)
     }
   },
   watch: {
     '$route.params.id': {
       handler(id) {
         this.getTransactions(id)
-        this.checkTransactionCount(id, id)
       },
       deep: true,
       immediate: true
+    },
+    page() {
+      this.loading = true
+      this.transactionsList()
     }
   },
   methods: {
-    async checkTransactionCount(startBlockNumber, endBlockNumber) {
-      let transactions = []
-
-      for (var i = startBlockNumber; i <= endBlockNumber; i++) {
-        let block = await web3.eth.getBlock(i)
-        if (block != null) {
-          if (block.transactions != null && block.transactions.length != 0) {
-            transactions = transactions.concat(block.transactions)
-          }
-        }
-      }
-      console.log(transactions)
-    },
     async getTransactions(id) {
-      const result = await web3.eth.getBlock(id, 0)
+      const result = await web3.eth.getBlock(id)
       console.log(result)
+      this.block = result
+      this.transactions = result.transactions
+      await this.transactionsList()
+    },
+    async transactionsList() {
+      this.transactionsDetail = []
+      const trans = this.transactions
+        .reverse()
+        .filter((item, index) => index >= this.page * 10 - 10 && index <= this.page * 10 - 1)
+      trans.forEach(async (item) => {
+        const detail = await web3.eth.getTransaction(item)
+        this.transactionsDetail.push(detail)
+      })
+      console.log(this.transactionsDetail)
+      this.loading = false
     },
     timeFrom(time) {
       return moment.unix(time).format('DD/MM/YYYY HH:mm:ss')
@@ -127,7 +107,6 @@ export default {
     goToBlock(block) {
       this.$router.push({ name: 'block', params: { id: block } })
     },
-    ...mapActions(useAddressStore, ['setPage', 'setTransactions', 'pushTransactions', 'setTime']),
     changePage(page) {
       this.setPage(page)
     },
@@ -146,26 +125,6 @@ export default {
     },
     timeAge(timeStamp) {
       return moment(moment.unix(timeStamp)).fromNow()
-    },
-    async getAccountInformation(address) {
-      const result = await web3.eth.getBalance(address)
-      this.balance = web3.utils.fromWei(result, 'ether')
-    },
-    async getTotalTransactions(address) {
-      const params = {
-        module: 'account',
-        action: 'txlist',
-        address,
-        startblock: 0,
-        endblock: this.endblock,
-        page: this.page,
-        offset: this.offset,
-        sort: 'desc',
-        apikey: sepoliaKey
-      }
-      const result1 = await getModel('api', params)
-      this.setTransactions(result1.data.result)
-      this.loading = false
     }
   }
 }
@@ -191,7 +150,7 @@ export default {
 }
 
 .hash {
-  width: 14%;
+  width: 160px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -206,8 +165,15 @@ export default {
   display: flex;
   align-items: center;
 }
+
 .transaction-list {
   margin-top: 20px;
+  min-width: 1000px;
+}
+
+.list {
+  overflow: auto;
+  padding: 15px;
 }
 </style>
   

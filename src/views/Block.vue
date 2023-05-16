@@ -86,7 +86,7 @@
 
       <div class="row">
         <span class="second"> Parent Hash:</span>
-        <span v-if="detail?.parentHash">{{ detail.parentHash }}</span>
+        <span v-if="detail?.parentHash" class="phash">{{ detail.parentHash }}</span>
       </div>
     </div>
   </div>
@@ -197,7 +197,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .detail-page {
   max-width: 1200px;
   margin: auto;
@@ -212,7 +212,14 @@ export default {
 .second {
   color: #6c757d;
   width: 300px;
+  min-width: 300px;
   display: block;
+}
+
+.phash {
+  width: calc(100% - 150px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detail {
@@ -222,7 +229,9 @@ export default {
 .row {
   display: flex;
   margin-bottom: 15px;
+  width: 100%;
 }
+
 .input-data {
   width: calc(100% - 300px);
 }
@@ -230,6 +239,7 @@ export default {
 pre {
   margin: 0;
 }
+
 table {
   margin-top: 10px;
   width: 100%;
@@ -277,6 +287,22 @@ textarea {
   &.-left {
     margin-left: 10px;
     margin-right: 5px;
+  }
+}
+
+@media only screen and (max-width: 992px) {
+  .detail-page {
+    font-size: 14px;
+  }
+  .second {
+    max-width: 120px;
+    width: 120px;
+    min-width: unset;
+  }
+  .link {
+    width: calc(100% - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>
