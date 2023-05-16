@@ -150,7 +150,7 @@ export default {
 }
 
 .hash {
-  width: 160px;
+  width: 190px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -168,12 +168,17 @@ export default {
 
 .transaction-list {
   margin-top: 20px;
-  min-width: 1000px;
+  min-width: 1200px;
 }
 
 .list {
   overflow: auto;
-  padding: 15px;
+}
+
+@media only screen and (max-width: 992px) {
+  .list {
+    padding: 15px;
+  }
 }
 </style>
   
