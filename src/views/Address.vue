@@ -199,10 +199,11 @@ export default {
   align-items: center;
   border-bottom: solid 1px #f0f0f0;
   padding: 10px 0;
+  width: 100%;
 }
 
 .hash {
-  width: 140px;
+  width: 160px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,6 +225,6 @@ export default {
 }
 
 .list {
-  overflow: scroll;
+  overflow: auto;
 }
 </style>
