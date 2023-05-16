@@ -2,10 +2,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AddressView from '../views/Address.vue'
 import TransactionView from '../views/Transaction.vue'
 import BlockView from '../views/Block.vue'
+import HomeView from '../views/Home.vue'
+import TransactionFromBlock from '../views/TransactionFromBlock.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: HomeView
+    },
     {
       path: '/address/:id',
       name: 'address',
@@ -28,6 +35,11 @@ const router = createRouter({
       path: '/block/:id',
       name: 'block',
       component: BlockView
+    },
+    {
+      path: '/txn-block/:id',
+      name: 'transactionFromBlock',
+      component: TransactionFromBlock
     },
   ]
 })

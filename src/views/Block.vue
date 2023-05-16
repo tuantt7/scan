@@ -35,7 +35,7 @@
 
       <div class="row">
         <span class="second">Transactions:</span>
-        <span v-if="detail?.transactions?.length"
+        <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
           >{{ formatNumber(detail.transactions?.length) }} transactions</span
         >
       </div>
@@ -160,6 +160,11 @@ export default {
     goToAddress(address) {
       this.$router.push({ name: 'address', params: { id: address } })
     },
+    gotoTxnBlock() {
+      const { id } = this.$route.params
+      this.$router.push({ name: 'transactionFromBlock', params: { id } })
+      console.log(id)
+    },
     decodeInput(text) {
       return web3.utils.hexToAscii(text)
     },
@@ -176,6 +181,7 @@ export default {
       try {
         this.loading = true
         const result = await web3.eth.getBlock(num)
+        console.log(result)
         const latestFinalizedBlock = await web3.eth.getBlock('finalized')
         this.finalized = num <= latestFinalizedBlock.number
         this.detail = Object.assign({}, result)
