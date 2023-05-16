@@ -1,8 +1,13 @@
 import Web3 from 'web3'
 
-const network = import.meta.env.VITE_ETHEREUM_NETWORK
+const sepoliaNetwork = import.meta.env.VITE_SEPOLIA_NETWORK
+const mainnetNetwork = import.meta.env.VITE_MAINNET_NETWORK
 const apiKey = import.meta.env.VITE_INFURA_API_KEY
 const privateKey = import.meta.env.VITE_SIGNER_PRIVATE_KEY
+
+const net = localStorage.getItem('net')
+const network =  net === sepoliaNetwork ? sepoliaNetwork : mainnetNetwork
+
 
 const web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${apiKey}`))
 

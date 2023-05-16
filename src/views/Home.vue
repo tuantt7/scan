@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <h3>Sepolia Testnet Explorer</h3>
+    <h3 v-if="!isMainnet">Sepolia Testnet Explorer</h3>
     <div class="over-view">
       <el-skeleton v-if="loading" :rows="6" animated />
       <div v-else class="card -head">
@@ -52,7 +52,7 @@ import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '../stores/address.js'
 import { getModel } from '../api.js'
-const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
+const mainnet = import.meta.env.VITE_MAINNET_NETWORK
 export default {
   name: 'HomePage',
   data() {
@@ -66,6 +66,9 @@ export default {
     ...mapState(useAddressStore, ['dataPage', 'tranLength', 'offset', 'time']),
     transactions() {
       return this.blocks[0]?.transactions.slice(0, 5)
+    },
+    isMainnet() {
+      return localStorage.getItem('net') === mainnet
     }
   },
   mounted() {
@@ -137,7 +140,7 @@ export default {
 
 .over-view {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: calc(50% - 10px) calc(50% - 10px);
   gap: 20px;
 }
 
@@ -156,6 +159,7 @@ export default {
   border-bottom: solid 1px #f0f0f0;
   justify-content: center;
   width: 100%;
+  overflow: hidden;
 }
 
 .icon-block {
@@ -173,6 +177,7 @@ export default {
 
 .time {
   margin-left: 20px;
+  max-width: calc(100% - 62px);
 }
 
 .address {
@@ -185,7 +190,7 @@ export default {
 
 .link {
   &.-hash {
-    min-width: 250px;
+    min-width: 200px;
     max-width: 380px;
     white-space: nowrap;
     overflow: hidden;
@@ -193,6 +198,7 @@ export default {
     display: block;
   }
 }
+
 @media only screen and (max-width: 992px) {
   .home-page {
     font-size: 14px;
