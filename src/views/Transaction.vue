@@ -5,7 +5,7 @@
     <div v-else class="detail card">
       <div class="row">
         <span class="second">Transaction Hash:</span>
-        {{ detail?.hash }}
+        <span class="phash">{{ detail?.hash }}</span>
       </div>
       <div class="row">
         <span class="second">Status: </span>
@@ -27,8 +27,12 @@
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)">{{ detail?.to || detail2?.contractAddress }} </span>
-        <span v-if="detail2?.contractAddress" class="ml-10">Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon></span>
+        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)"
+          >{{ detail?.to || detail2?.contractAddress }}
+        </span>
+        <span v-if="detail2?.contractAddress" class="ml-10"
+          >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
+        ></span>
       </div>
       <div class="row">
         <span class="second">Value:</span>
@@ -106,7 +110,8 @@
   <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '../abiApi.js'
+import { postModel } from '../abiApi.js'
+const sepoliaNetwork = import.meta.env.VITE_SEPOLIA_NETWORK
 export default {
   name: 'HomePage',
   data() {
@@ -124,11 +129,6 @@ export default {
       decodeContract: null,
       activeTab: 'originnal'
     }
-  },
-  async mounted() {
-    const { id } = this.$route.params
-
-    if (id) this.getDetailTran(id)
   },
   computed: {
     to() {
@@ -150,6 +150,15 @@ export default {
     gas() {
       const gas = this.detail?.gasPrice || 0
       return `${this.toGwei(gas)} Gwei ( ${this.toETH(gas)} ETH )`
+    }
+  },
+  watch: {
+    '$route.params.id': {
+      handler(id) {
+        this.getDetailTran(id)
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
@@ -193,11 +202,12 @@ export default {
         if (result.to) {
           const addressCode = await web3.eth.getCode(result.to)
           if (addressCode !== '0x') {
-            const params = {
+            const data = {
               contract: result.to,
-              hx: result.input
+              hx: result.input,
+              net: localStorage.getItem('net')
             }
-            const res = await getModel('abi', params)
+            const res = await postModel('abi', data)
             if (res && res.data.status == 1) {
               this.decodeContract = res.data
             }
@@ -228,6 +238,14 @@ export default {
   display: block;
 }
 
+.phash {
+  width: calc(100% - 150px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
 .detail {
   margin-top: 20px;
 }
@@ -235,6 +253,7 @@ export default {
 .row {
   display: flex;
   margin-bottom: 15px;
+  width: 100%;
 }
 .input-data {
   width: calc(100% - 300px);
@@ -275,6 +294,25 @@ textarea {
 
 .el-tabs ::v-deep(.el-tabs__nav-wrap::after) {
   background-color: #fff;
+}
+
+@media only screen and (max-width: 992px) {
+  .detail-page {
+    font-size: 14px;
+  }
+  .second {
+    max-width: 120px;
+    width: 120px;
+    min-width: unset;
+  }
+  .input-data {
+    width: calc(100% - 120px);
+  }
+  .link {
+    width: calc(100% - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 </style>
   

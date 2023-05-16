@@ -2,7 +2,7 @@
   <div class="detail-page">
     <strong>Block Details</strong>
 
-    <el-skeleton v-if="!detail" :rows="6" animated />
+    <el-skeleton v-if="loading" :rows="6" animated />
     <div v-else class="detail card">
       <div class="row">
         <span class="second">Block:</span>
@@ -35,7 +35,7 @@
 
       <div class="row">
         <span class="second">Transactions:</span>
-        <span v-if="detail?.transactions?.length"
+        <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
           >{{ formatNumber(detail.transactions?.length) }} transactions</span
         >
       </div>
@@ -86,7 +86,7 @@
 
       <div class="row">
         <span class="second"> Parent Hash:</span>
-        <span v-if="detail?.parentHash">{{ detail.parentHash }}</span>
+        <span v-if="detail?.parentHash" class="phash">{{ detail.parentHash }}</span>
       </div>
     </div>
   </div>
@@ -110,13 +110,9 @@ export default {
       timeStamp: null,
       detail2: null,
       decodeContract: null,
-      activeTab: 'originnal'
+      activeTab: 'originnal',
+      loading: true
     }
-  },
-  async mounted() {
-    const { id } = this.$route.params
-
-    if (id) this.getDetailBlock(id)
   },
   computed: {
     to() {
@@ -140,6 +136,15 @@ export default {
       return `${this.toGwei(gas)} Gwei ( ${this.toETH(gas)} ETH )`
     }
   },
+  watch: {
+    '$route.params.id': {
+      handler(id) {
+        this.getDetailBlock(id)
+      },
+      deep: true,
+      immediate: true
+    }
+  },
   methods: {
     viewNextBlock() {
       const block = this.detail.number + 1
@@ -155,6 +160,11 @@ export default {
     goToAddress(address) {
       this.$router.push({ name: 'address', params: { id: address } })
     },
+    gotoTxnBlock() {
+      const { id } = this.$route.params
+      this.$router.push({ name: 'transactionFromBlock', params: { id } })
+      console.log(id)
+    },
     decodeInput(text) {
       return web3.utils.hexToAscii(text)
     },
@@ -169,14 +179,16 @@ export default {
     },
     async getDetailBlock(num) {
       try {
+        this.loading = true
         const result = await web3.eth.getBlock(num)
+        console.log(result)
         const latestFinalizedBlock = await web3.eth.getBlock('finalized')
         this.finalized = num <= latestFinalizedBlock.number
         this.detail = Object.assign({}, result)
-        console.log(result)
         this.timeStamp = `${moment(moment.unix(result.timestamp)).fromNow()} (${moment
           .unix(result.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
+        this.loading = false
       } catch (error) {
         console.log(error)
         this.$store.dispatch('setError', ERROR_BLOCK)
@@ -185,7 +197,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .detail-page {
   max-width: 1200px;
   margin: auto;
@@ -200,7 +212,14 @@ export default {
 .second {
   color: #6c757d;
   width: 300px;
+  min-width: 300px;
   display: block;
+}
+
+.phash {
+  width: calc(100% - 150px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detail {
@@ -210,7 +229,9 @@ export default {
 .row {
   display: flex;
   margin-bottom: 15px;
+  width: 100%;
 }
+
 .input-data {
   width: calc(100% - 300px);
 }
@@ -218,6 +239,7 @@ export default {
 pre {
   margin: 0;
 }
+
 table {
   margin-top: 10px;
   width: 100%;
@@ -265,6 +287,22 @@ textarea {
   &.-left {
     margin-left: 10px;
     margin-right: 5px;
+  }
+}
+
+@media only screen and (max-width: 992px) {
+  .detail-page {
+    font-size: 14px;
+  }
+  .second {
+    max-width: 120px;
+    width: 120px;
+    min-width: unset;
+  }
+  .link {
+    width: calc(100% - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>
