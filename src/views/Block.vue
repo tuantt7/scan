@@ -35,8 +35,11 @@
 
       <div class="row">
         <span class="second">Transactions:</span>
-        <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
+        <!-- <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
           >{{ formatNumber(detail.transactions?.length) }} transactions</span
+        > -->
+        <a :href="`/txn-block/${$route.params.id}`"
+          >{{ formatNumber(detail.transactions?.length) }} transactions</a
         >
       </div>
 
@@ -47,11 +50,12 @@
         >
       </div>
 
-      <div class="row">
+      <div v-if="detail?.miner" class="row">
         <span class="second">Fee Recipient:</span>
-        <span v-if="detail?.miner" class="link" @click="goToAddress(detail.miner)">{{
-          detail.miner
-        }}</span>
+        <!-- <span class="link" @click="goToAddress(detail.miner)">
+          {{ detail.miner }}
+        </span> -->
+        <a :href="`/address/${detail.miner}`">{{ detail.miner }}</a>
       </div>
 
       <div class="row">

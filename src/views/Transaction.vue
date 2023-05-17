@@ -15,7 +15,7 @@
       </div>
       <div class="row">
         <span class="second">Block:</span>
-        <span class="link" @click="goToBlock(detail.blockNumber)">{{ detail?.blockNumber }}</span>
+        <a :href="`/block/${detail.blockNumber}`">{{ detail?.blockNumber }}</a>
       </div>
       <div class="row">
         <span class="second">Timestamp:</span>
@@ -23,13 +23,11 @@
       </div>
       <div class="row">
         <span class="second">From:</span>
-        <span class="link" @click="goToAddress(detail.from)">{{ detail?.from }}</span>
+        <a :href="`/address/${detail.from}`">{{ detail?.from }}</a>
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <span class="link" @click="goToAddress(detail.to || detail2.contractAddress)"
-          >{{ detail?.to || detail2?.contractAddress }}
-        </span>
+        <a :href="`/address/${detail.to || detail2.contractAddress}`">{{ detail?.to || detail2?.contractAddress }}</a>
         <span v-if="detail2?.contractAddress" class="ml-10"
           >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
         ></span>
@@ -111,7 +109,6 @@
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { postModel } from '../abiApi.js'
-const sepoliaNetwork = import.meta.env.VITE_SEPOLIA_NETWORK
 export default {
   name: 'HomePage',
   data() {
@@ -243,8 +240,6 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-
 
 .detail {
   margin-top: 20px;

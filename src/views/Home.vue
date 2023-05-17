@@ -12,17 +12,19 @@
                 <el-icon size="24" color="rgba(84, 84, 84, 0.65)"><Box /></el-icon>
               </div>
               <div class="time">
-                <span class="link" @click="goToBlock(block.number)">{{ block.number }}</span>
+                <!-- <span class="link" @click="goToBlock(block.number)">{{ block.number }}</span> -->
+                <a :href="`/block/${block.number}`">{{ block.number }}</a>
                 <p>{{ timeAgeSeconds(block.timestamp) }}</p>
               </div>
             </div>
             <div class="fee">
               <span
                 >Fee Recipient
-                <span class="link address" @click="goToAddress(block.miner)">
+                <!-- <span class="link address" @click="goToAddress(block.miner)">
                   {{ block.miner }}</span
-                ></span
-              >
+                > -->
+                <a :href="`/address/${block.miner}`" class="link address">{{ block.miner }}</a>
+              </span>
             </div>
             <div class="fee">{{ block.transactions.length }} transactions</div>
           </div>
@@ -37,7 +39,8 @@
               <el-icon size="24" color="rgba(84, 84, 84, 0.65)"><Tickets /></el-icon>
             </div>
             <div class="time">
-              <span class="link -hash" @click="goToTransaction(tran)">{{ tran }}</span>
+              <!-- <span class="link -hash" @click="goToTransaction(tran)">{{ tran }}</span> -->
+              <a :href="`/transaction/${tran}`" class="link -hash">{{ tran }}</a>
               <p>{{ timeAgeSeconds(blocks[0].timestamp) }}</p>
             </div>
           </div>
@@ -51,7 +54,6 @@ import web3 from '@/utils/web3'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '../stores/address.js'
-import { getModel } from '../api.js'
 const mainnet = import.meta.env.VITE_MAINNET_NETWORK
 export default {
   name: 'HomePage',
