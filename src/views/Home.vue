@@ -49,7 +49,7 @@
     </div>
   </div>
 </template>
-  <script>
+<script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
@@ -133,7 +133,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .home-page {
   max-width: 1200px;
   margin: auto;
@@ -217,4 +217,3 @@ export default {
   }
 }
 </style>
-  

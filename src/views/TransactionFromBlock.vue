@@ -58,7 +58,7 @@
     </div>
   </div>
 </template>
-  <script>
+<script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
 export default {
@@ -149,7 +149,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .home-page {
   max-width: 1200px;
   margin: auto;
@@ -205,4 +205,3 @@ export default {
   }
 }
 </style>
-  

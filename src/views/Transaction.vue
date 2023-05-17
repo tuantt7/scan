@@ -27,7 +27,9 @@
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <a :href="`/address/${detail.to || detail2.contractAddress}`">{{ detail?.to || detail2?.contractAddress }}</a>
+        <a :href="`/address/${detail.to || detail2.contractAddress}`">
+          {{ detail?.to || detail2?.contractAddress }}
+        </a>
         <span v-if="detail2?.contractAddress" class="ml-10"
           >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
         ></span>
@@ -49,9 +51,9 @@
       <div class="row">
         <span class="second">Gas Limit & Usage by Txn :</span>
         {{ formatNumber(detail?.gas) }}
-        <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }"
-          >| {{ formatNumber(detail2?.gasUsed) }} ({{ percent }})</span
-        >
+        <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }">
+          | {{ formatNumber(detail2?.gasUsed) }} ({{ percent }})
+        </span>
       </div>
       <div class="row">
         <span class="second">Gas Fee:</span>
@@ -77,9 +79,10 @@
               ></textarea>
             </el-tab-pane>
             <el-tab-pane label="Decode" name="decode">
-              <span v-if="decodeContract && decodeContract.name"
-                >Function: <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag></span
-              >
+              <span v-if="decodeContract && decodeContract.name">
+                Function:
+                <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag>
+              </span>
               <table v-if="decodeContract && decodeContract.name">
                 <tr>
                   <th>Name</th>
@@ -105,7 +108,7 @@
     </div>
   </div>
 </template>
-  <script>
+<script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { postModel } from '../abiApi.js'
@@ -217,7 +220,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .detail-page {
   max-width: 1200px;
   margin: auto;
@@ -310,4 +313,3 @@ textarea {
   }
 }
 </style>
-  
