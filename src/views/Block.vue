@@ -35,23 +35,27 @@
 
       <div class="row">
         <span class="second">Transactions:</span>
-        <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
+        <!-- <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
           >{{ formatNumber(detail.transactions?.length) }} transactions</span
-        >
+        > -->
+        <a :href="`/txn-block/${$route.params.id}`">
+          {{ formatNumber(detail.transactions?.length) }} transactions
+        </a>
       </div>
 
       <div class="row">
         <span class="second">Withdrawals:</span>
-        <span v-if="detail?.withdrawals?.length"
-          >{{ formatNumber(detail.withdrawals?.length) }} withdrawals</span
-        >
+        <span v-if="detail?.withdrawals?.length">
+          {{ formatNumber(detail.withdrawals?.length) }} withdrawals
+        </span>
       </div>
 
-      <div class="row">
+      <div v-if="detail?.miner" class="row">
         <span class="second">Fee Recipient:</span>
-        <span v-if="detail?.miner" class="link" @click="goToAddress(detail.miner)">{{
-          detail.miner
-        }}</span>
+        <!-- <span class="link" @click="goToAddress(detail.miner)">
+          {{ detail.miner }}
+        </span> -->
+        <a :href="`/address/${detail.miner}`">{{ detail.miner }}</a>
       </div>
 
       <div class="row">
@@ -76,12 +80,11 @@
 
       <div class="row">
         <span class="second">Base Fee Per Gas:</span>
-        <span v-if="detail?.baseFeePerGas"
-          >{{ formatNumber(detail.baseFeePerGas) }} wei ({{
-            toGwei(detail.baseFeePerGas)
-          }}
-          Gwei)</span
-        >
+        <span v-if="detail?.baseFeePerGas">
+          {{ formatNumber(detail.baseFeePerGas) }} wei (
+          {{ toGwei(detail.baseFeePerGas) }}
+          Gwei)
+        </span>
       </div>
 
       <div class="row">
@@ -91,7 +94,7 @@
     </div>
   </div>
 </template>
-  <script>
+<script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
 
@@ -306,4 +309,3 @@ textarea {
   }
 }
 </style>
-  

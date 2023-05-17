@@ -14,19 +14,35 @@
           <!-- <strong class="hash">Txn Fee</strong> -->
         </div>
         <div class="transaction" v-for="tran in transactionsDetail" :key="tran.hash">
-          <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
-          <span class="hash"
-            ><span class="link" @click="goToBlock(tran.blockNumber)">{{
-              tran.blockNumber
-            }}</span></span
-          >
+          <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
+          <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran.hash }}</a>
+          <span class="hash">
+            <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
+              {{ tran.blockNumber }}
+            </span> -->
+            <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran.blockNumber }}</a>
+          </span>
           <span class="hash">
             <el-tooltip :content="timeFrom(block.timestamp)" placement="top">
               <span>{{ timeAge(block.timestamp) }}</span>
             </el-tooltip>
           </span>
-          <span class="hash">{{ tran.from }}</span>
-          <span class="hash">{{ tran.to }}</span>
+          <div class="hash">
+            <el-tooltip :content="tran.from" placement="top">
+              <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
+            </el-tooltip>
+            <Copy class="copy" :text="tran.from" />
+          </div>
+          <div class="hash">
+            <el-tooltip v-if="tran.to" :content="tran.to" placement="top">
+              <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
+            </el-tooltip>
+            <Copy v-if="tran.to" class="copy" :text="tran.to" />
+            <el-tooltip v-if="tran.contractAddress" :content="tran.contractAddress" placement="top">
+              <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
+            </el-tooltip>
+            <Copy v-if="tran.contractAddress" class="copy" :text="tran.contractAddress" />
+          </div>
           <span class="hash">{{ value(tran.value) }}</span>
         </div>
         <el-pagination
@@ -42,12 +58,9 @@
     </div>
   </div>
 </template>
-  <script>
+<script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { useAddressStore } from '../stores/address.js'
-import { getModel } from '../api.js'
-const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
 export default {
   name: 'HomePage',
   data() {
@@ -82,6 +95,11 @@ export default {
     }
   },
   methods: {
+    address(address) {
+      if (!address) return ''
+      const text = `${address.slice(0, 8)}...${address.substr(address.length - 8)}`
+      return text
+    },
     async getTransactions(id) {
       const result = await web3.eth.getBlock(id)
       console.log(result)
@@ -96,6 +114,8 @@ export default {
         .filter((item, index) => index >= this.page * 10 - 10 && index <= this.page * 10 - 1)
       trans.forEach(async (item) => {
         const detail = await web3.eth.getTransaction(item)
+        const detail2 = await web3.eth.getTransactionReceipt(item)
+        detail.contractAddress = detail2.contractAddress
         this.transactionsDetail.push(detail)
       })
       console.log(this.transactionsDetail)
@@ -129,7 +149,7 @@ export default {
   }
 }
 </script>
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 .home-page {
   max-width: 1200px;
   margin: auto;
@@ -175,10 +195,13 @@ export default {
   overflow: auto;
 }
 
+.copy {
+  margin-left: 15px;
+}
+
 @media only screen and (max-width: 992px) {
   .list {
     padding: 15px;
   }
 }
 </style>
-  

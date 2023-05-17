@@ -1,6 +1,15 @@
 <template>
   <div class="home-page">
-    <div class="over-view">
+    <el-skeleton v-if="!addressType" :rows="1" animated />
+    <div class="card -head" v-else>
+      <div class="card-body address-info">
+        <strong>{{ addressType }}</strong>
+        <span class="ml-10">{{ $route.params.id }}</span>
+        <Copy :text="$route.params.id" class="ml-10" />
+      </div>
+    </div>
+    <el-skeleton v-if="!balance" :rows="2" animated />
+    <div v-else class="over-view">
       <div class="balance card">
         <strong>Overview</strong>
         <p>ETH BALANCE</p>
@@ -10,12 +19,12 @@
         <strong>More Info</strong>
         <p>LAST TXN SENT</p>
         <div class="flex">
-          <small v-if="transactions.length" class="hash link small">{{
-            transactions[transactions.length - 1].hash
-          }}</small>
-          <span v-if="transactions.length">{{
-            timeFrom(transactions[transactions.length - 1].timeStamp)
-          }}</span>
+          <small v-if="transactions.length" class="hash link small">
+            {{ transactions[transactions.length - 1].hash }}
+          </small>
+          <span v-if="transactions.length">
+            {{ timeFrom(transactions[transactions.length - 1].timeStamp) }}
+          </span>
         </div>
       </div>
     </div>
@@ -28,26 +37,65 @@
           <strong class="hash">Method</strong>
           <strong class="hash">Block</strong>
           <strong class="hash">Age</strong>
-          <strong class="hash">From</strong>
-          <strong class="hash">To</strong>
+          <strong class="hashF">From</strong>
+          <strong class="hashL">To</strong>
           <strong class="hash">Value</strong>
           <!-- <strong class="hash">Txn Fee</strong> -->
         </div>
         <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
-          <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span>
+          <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran?.hash }}</a>
+          <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
           <span class="hash">{{ tran.methodId }}</span>
-          <span class="hash"
-            ><span class="link" @click="goToBlock(tran.blockNumber)">{{
-              tran.blockNumber
-            }}</span></span
-          >
+
+          <span class="hash">
+            <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
+              {{ tran.blockNumber }}
+            </span> -->
+            <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran?.blockNumber }}</a>
+          </span>
+
           <span class="hash">
             <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
               <span>{{ timeAge(tran.timeStamp) }}</span>
             </el-tooltip>
           </span>
-          <span class="hash">{{ tran.from }}</span>
-          <span class="hash">{{ tran.to }}</span>
+
+          <div v-if="isAddress(tran.from)" class="hashF">
+            <el-tooltip :content="tran.from" placement="top">
+              <span>{{ address(tran.from) }}</span>
+            </el-tooltip>
+            <Copy class="copy" :text="tran.from" />
+            <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success">In</el-tag>
+            <el-tag v-else type="warning">Out</el-tag>
+          </div>
+          <div v-else class="hashF">
+            <el-tooltip :content="tran.from" placement="top">
+              <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
+            </el-tooltip>
+            <Copy class="copy" :text="tran.from" />
+            <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success">In</el-tag>
+            <el-tag v-else type="warning">Out</el-tag>
+          </div>
+
+          <div v-if="isAddress(tran.to) && tran.to" class="hashL">
+            <el-tooltip :content="tran.to" placement="top">
+              <span>{{ address(tran.to) }}</span>
+            </el-tooltip>
+            <Copy class="copy" :text="tran.to" />
+          </div>
+          <div v-else class="hashL">
+            <el-tooltip v-if="tran.to" :content="tran.to" placement="top">
+              <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
+            </el-tooltip>
+            <Copy v-if="tran.to" :text="tran.to" />
+
+            <el-tooltip v-if="tran.contractAddress" placement="top">
+              <template #content> New contract<br />{{ tran.contractAddress }} </template>
+              <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
+            </el-tooltip>
+            <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
+          </div>
+
           <span class="hash">{{ value(tran.value) }}</span>
           <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
         </div>
@@ -80,7 +128,8 @@ export default {
       total: 0,
       startblock: 0,
       endblock: 99999999,
-      loading: true
+      loading: true,
+      addressType: null
     }
   },
   computed: {
@@ -106,6 +155,14 @@ export default {
     }
   },
   methods: {
+    isAddress(address) {
+      return address === this.$route.params.id
+    },
+    address(address) {
+      if (!address) return ''
+      const text = `${address.slice(0, 8)}...${address.substr(address.length - 8)}`
+      return text
+    },
     timeFrom(time) {
       return moment.unix(time).format('DD/MM/YYYY HH:mm:ss')
     },
@@ -133,6 +190,8 @@ export default {
       return moment(moment.unix(timeStamp)).fromNow()
     },
     async getAccountInformation(address) {
+      const addressCode = await web3.eth.getCode(this.$route.params.id)
+      this.addressType = addressCode === '0x' ? 'Address ' : 'Contract '
       const result = await web3.eth.getBalance(address)
       this.balance = web3.utils.fromWei(result, 'ether')
     },
@@ -189,6 +248,7 @@ export default {
 }
 
 .over-view {
+  margin-top: 20px;
   display: grid;
   grid-template-columns: calc(50% - 10px) calc(50% - 10px);
   gap: 20px;
@@ -203,11 +263,28 @@ export default {
 }
 
 .hash {
-  width: 160px;
+  width: 150px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+}
+
+.hashL {
+  width: 170px;
+  min-width: 170px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hashF {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 20px;
 }
 
 .small {
@@ -226,5 +303,18 @@ export default {
 
 .list {
   overflow: auto;
+}
+
+.text {
+  width: 135px;
+}
+
+.el-tag {
+  width: 40px;
+}
+
+.address-info {
+  display: flex;
+  align-items: center;
 }
 </style>

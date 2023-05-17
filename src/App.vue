@@ -43,7 +43,6 @@ export default {
 }
 </script>
 
-
 <style lang="scss" scoped>
 .el-menu {
   display: flex;
@@ -55,7 +54,7 @@ export default {
   max-width: 1200px;
   width: 100%;
   margin: auto;
-  z-index: 99999;
+  z-index: 1;
   background-color: #fff;
 }
 .type {
