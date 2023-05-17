@@ -56,7 +56,8 @@
 
           <span class="hash">
             <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
-              <span>{{ timeAge(tran.timeStamp) }}</span>
+              <!-- <span>{{ timeAge(tran.timeStamp) }} </span> -->
+              <p>{{ customTime(tran.timeStamp) }}</p>
             </el-tooltip>
           </span>
 
@@ -116,8 +117,8 @@
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
-import { useAddressStore } from '../stores/address.js'
-import { getModel } from '../api.js'
+import { useAddressStore } from '@/stores/address.js'
+import { getModel } from '@/api.js'
 const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
 export default {
   name: 'HomePage',
@@ -155,6 +156,54 @@ export default {
     }
   },
   methods: {
+    customTime(time) {
+      const exp = moment(moment.unix(time))
+      const now = moment(new Date())
+
+      const seconds = now.diff(exp, 'seconds')
+      if (seconds < 59) return now.diff(exp, 'seconds') + ' seconds ago '
+
+      var diffMs = now - exp
+      var diffDays = Math.floor(diffMs / 86400000)
+      var diffHrs = Math.floor((diffMs % 86400000) / 3600000)
+      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000)
+
+      if (diffDays > 0) {
+        if (diffHrs > 0) {
+          return `${diffDays} ${diffDays > 1 ? 'days' : 'day'} ${diffHrs} ${
+            diffHrs > 1 ? 'hrs ago' : 'hr ago'
+          }`
+        }
+
+        if (diffHrs === 0) {
+          return `${diffDays} ${diffDays > 1 ? 'days' : 'day'} ${diffMins} ${
+            diffMins > 1 ? 'mins ago' : 'min ago'
+          }`
+        }
+
+        return diffDays + ' day ' + diffHrs + ' hrs ago'
+      }
+      if (diffHrs > 0) {
+        if (diffMins > 1) {
+          return `${diffHrs} ${diffHrs > 1 ? 'hrs' : 'hr'} ${diffMins} ${
+            diffMins > 1 ? 'mins ago' : 'min ago'
+          }`
+        }
+
+        if (diffMins === 0) {
+          return `${diffHrs} ${diffHrs > 1 ? 'hrs' : 'hr'}`
+        }
+
+        return diffHrs + ' hour ' + diffMins + ' mins ago'
+      }
+      if (diffMins > 0) {
+        if (diffMins > 1) return diffMins + ' mins ago'
+
+        return diffMins + ' min ago'
+      }
+
+      return this.timeAge(time)
+    },
     isAddress(address) {
       return address.toLowerCase() === this.$route.params.id.toLowerCase()
     },
@@ -208,33 +257,24 @@ export default {
         apikey: sepoliaKey
       }
       const result1 = await getModel('api', params)
-      this.setTransactions(result1.data.result)
       this.loading = false
-      // result1.data.result.forEach((element) => {
-      //   delete element.confirmations
-      //   delete element.contractAddress
-      //   delete element.functionName
-      //   delete element.input
-      //   delete element.isError
-      //   delete element.transactionIndex
-      //   delete element.nonce
-      //   delete element.txreceipt_status
-      //   delete element.blockHash
-      //   delete element.cumulativeGasUsed
-      // })
 
-      // if (result1.data.result.length > 1) {
-      //   setTimeout(() => {
-      //     this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
-      //     this.getTotalTransactions(address)
-      //     this.setTime()
-      //   }, 300)
-      // } else {
-      //   const transactionList = this.transactions.filter(
-      //     (obj, index) => this.transactions.findIndex((item) => item.hash === obj.hash) === index
-      //   )
-      //   this.setTransactions(transactionList)
-      // }
+      if (result1.data.result.length > 1 && this.transactions.length < 100000) {
+        setTimeout(() => {
+          this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
+          const ids = new Set(this.transactions.map(({ hash }) => hash))
+          const newData = result1.data.result.filter(({ hash }) => !ids.has(hash))
+          this.pushTransactions(newData)
+          this.getTotalTransactions(address)
+          this.setTime()
+        }, 250)
+      } else {
+        // const ids = new Set(this.transactions.map(({ hash }) => hash))
+        // const selectedRows = result1.data.result.filter(({ hash }) => !ids.has(hash))
+        // console.log(selectedRows)
+        // // this.setTransactions(transactionList)
+        // this.pushTransactions(result1.data.result)
+      }
     }
   }
 }

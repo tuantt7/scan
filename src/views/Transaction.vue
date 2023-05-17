@@ -111,7 +111,8 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { postModel } from '../abiApi.js'
+import { postModel } from '@/abiApi.js'
+
 export default {
   name: 'HomePage',
   data() {
