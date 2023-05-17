@@ -236,6 +236,7 @@ export default {
 .second {
   color: #6c757d;
   width: 300px;
+  min-width: 300px;
   display: block;
 }
 
