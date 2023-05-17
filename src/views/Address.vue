@@ -184,7 +184,7 @@ export default {
         return diffDays + ' day ' + diffHrs + ' hrs ago'
       }
       if (diffHrs > 0) {
-        if (diffMins > 1) {
+        if (diffMins > 0) {
           return `${diffHrs} ${diffHrs > 1 ? 'hrs' : 'hr'} ${diffMins} ${
             diffMins > 1 ? 'mins ago' : 'min ago'
           }`
