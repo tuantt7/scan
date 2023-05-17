@@ -60,7 +60,7 @@
             </el-tooltip>
           </span>
 
-          <div v-if="isAddress(tran.from)" class="hashF">
+          <div v-if="isAddress(tran.from)" class="hashF">1
             <el-tooltip :content="tran.from" placement="top">
               <span>{{ address(tran.from) }}</span>
             </el-tooltip>
@@ -68,7 +68,7 @@
             <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success">In</el-tag>
             <el-tag v-else type="warning">Out</el-tag>
           </div>
-          <div v-else class="hashF">
+          <div v-else class="hashF">2
             <el-tooltip :content="tran.from" placement="top">
               <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
             </el-tooltip>
@@ -156,6 +156,9 @@ export default {
   },
   methods: {
     isAddress(address) {
+      console.log(address);
+      console.log(this.$route.params.id);
+      console.log(address === this.$route.params.id);
       return address === this.$route.params.id
     },
     address(address) {
