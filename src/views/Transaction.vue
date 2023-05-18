@@ -23,11 +23,11 @@
       </div>
       <div class="row">
         <span class="second">From:</span>
-        <a :href="`/address/${detail.from}`">{{ detail?.from }}</a>
+        <a :href="`/address/${detail.from}`" class="link">{{ detail?.from }}</a>
       </div>
       <div class="row">
         <span class="second">To:</span>
-        <a :href="`/address/${detail.to || detail2.contractAddress}`">
+        <a :href="`/address/${detail.to || detail2.contractAddress}`" class="link">
           {{ detail?.to || detail2?.contractAddress }}
         </a>
         <span v-if="detail2?.contractAddress" class="ml-10"
@@ -62,9 +62,12 @@
       </div>
       <div class="row">
         <span class="second">Other Attributes:</span>
-        Nonce: <el-tag type="info" class="ml-5"> {{ detail?.nonce }}</el-tag>
-        <pre> & </pre>
-        Position In Block: <el-tag type="info" class="ml-5"> {{ detail?.transactionIndex }}</el-tag>
+        <span>
+          Nonce: <el-tag type="info" class="ml-5"> {{ detail?.nonce }}</el-tag>
+          <pre>&</pre>
+          Position In Block:
+          <el-tag type="info" class="ml-5"> {{ detail?.transactionIndex }}</el-tag>
+        </span>
       </div>
       <div class="row">
         <span class="second">Input Data:</span>
@@ -83,18 +86,20 @@
                 Function:
                 <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag>
               </span>
-              <table v-if="decodeContract && decodeContract.name">
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Data</th>
-                </tr>
-                <tr v-for="item in decodeContract.params" :key="item.name">
-                  <td>{{ item.name }}</td>
-                  <td>{{ item.type }}</td>
-                  <td>{{ item.value }}</td>
-                </tr>
-              </table>
+              <div v-if="decodeContract && decodeContract.name" class="table-decode">
+                <table>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Data</th>
+                  </tr>
+                  <tr v-for="item in decodeContract.params" :key="item.name">
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.type }}</td>
+                    <td>{{ item.value }}</td>
+                  </tr>
+                </table>
+              </div>
               <textarea
                 v-else-if="detail && detail.input"
                 :value="decodeInput(detail.input)"
@@ -259,11 +264,15 @@ export default {
   width: calc(100% - 300px);
 }
 
+.el-tag {
+  --el-tag-font-size: 15px;
+}
+
 pre {
   margin: 0;
 }
 table {
-  margin-top: 10px;
+  margin-top: 20px;
   width: 100%;
   border: solid 1px #e9ecef;
   border-radius: 15px;
@@ -303,15 +312,19 @@ textarea {
   .second {
     max-width: 120px;
     width: 120px;
-    min-width: unset;
+    min-width: 120px;
   }
   .input-data {
     width: calc(100% - 120px);
   }
   .link {
-    width: calc(100% - 150px);
+    max-width: calc(100% - 150px);
     overflow: hidden;
     text-overflow: ellipsis;
   }
+}
+
+.table-decode {
+  overflow: auto;
 }
 </style>
