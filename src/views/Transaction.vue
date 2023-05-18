@@ -117,6 +117,7 @@
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { postModel } from '@/abiApi.js'
+import { fromNow } from '@/utils/helper.js'
 
 export default {
   name: 'HomePage',
@@ -168,6 +169,7 @@ export default {
     }
   },
   methods: {
+    fromNow,
     formatNumber(num) {
       return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
     },
@@ -194,7 +196,7 @@ export default {
         const result = await web3.eth.getTransaction(hash)
         const result2 = await web3.eth.getTransactionReceipt(hash)
         const block = await web3.eth.getBlock(result.blockNumber)
-        this.timeStamp = `${moment(moment.unix(block.timestamp)).fromNow()} (${moment
+        this.timeStamp = `${this.fromNow(block.timestamp)} (${moment
           .unix(block.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
         this.status = result2.status

@@ -17,13 +17,22 @@
       </div>
       <div class="info card">
         <strong>More Info</strong>
-        <p>LAST TXN SENT</p>
+        <p>Last transaction sent:</p>
         <div class="flex">
-          <small v-if="transactions.length" class="hash link small">
-            {{ transactions[transactions.length - 1].hash }}
-          </small>
+          <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="hash link">
+            {{ transactions[0].hash }}
+          </a>
           <span v-if="transactions.length">
-            {{ timeFrom(transactions[transactions.length - 1].timeStamp) }}
+            {{ timeFrom(transactions[0].timeStamp) }}
+          </span>
+        </div>
+        <p>First transaction sent:</p>
+        <div class="flex">
+          <a v-if="firstTransactions" :href="`/transaction/${firstTransactions.hash}`" class="hash link">
+            {{ firstTransactions.hash }}
+          </a>
+          <span v-if="firstTransactions">
+            {{ timeFrom(firstTransactions.timeStamp) }}
           </span>
         </div>
       </div>
@@ -134,7 +143,8 @@ export default {
       startblock: 0,
       endblock: 99999999,
       loading: true,
-      addressType: null
+      addressType: null,
+      firstTransactions: null
     }
   },
   computed: {
@@ -154,6 +164,7 @@ export default {
       handler(id) {
         this.getAccountInformation(id)
         this.getTotalTransactions(id)
+        this.getFirstTransactions(id)
       },
       deep: true,
       immediate: true
@@ -194,6 +205,21 @@ export default {
     TxnFree(gas = 1, gasPrice = 1) {
       const price = web3.utils.fromWei(gas, 'gwei') * web3.utils.fromWei(gasPrice, 'gwei')
       return price.toString().slice(0, 10)
+    },
+    async getFirstTransactions(address) {
+      const params = {
+        module: 'account',
+        action: 'txlist',
+        address,
+        startblock: 0,
+        endblock: this.endblock,
+        page: 1,
+        offset: 1,
+        sort: 'asc',
+        apikey: sepoliaKey
+      }
+      const result = await getModel('api', params)
+      this.firstTransactions = result.data.result[0]
     },
     async getAccountInformation(address) {
       const addressCode = await web3.eth.getCode(this.$route.params.id)
