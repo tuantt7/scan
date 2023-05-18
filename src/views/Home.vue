@@ -14,7 +14,7 @@
               <div class="time">
                 <!-- <span class="link" @click="goToBlock(block.number)">{{ block.number }}</span> -->
                 <a :href="`/block/${block.number}`">{{ block.number }}</a>
-                <p>{{ timeAgeSeconds(block.timestamp) }}</p>
+                <p>{{ fromNow(block.timestamp) }}</p>
               </div>
             </div>
             <div class="fee">
@@ -41,7 +41,7 @@
             <div class="time">
               <!-- <span class="link -hash" @click="goToTransaction(tran)">{{ tran }}</span> -->
               <a :href="`/transaction/${tran}`" class="link -hash">{{ tran }}</a>
-              <p>{{ timeAgeSeconds(blocks[0].timestamp) }}</p>
+              <p>{{ fromNow(blocks[0].timestamp) }}</p>
             </div>
           </div>
         </div>
@@ -51,6 +51,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
+import { fromNow } from '@/utils/helper.js'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '../stores/address.js'
@@ -77,6 +78,7 @@ export default {
     this.getLatestBlock()
   },
   methods: {
+    fromNow,
     async getLatestBlock() {
       const latest = await web3.eth.getBlock('latest')
       this.latest = latest.number
@@ -94,12 +96,6 @@ export default {
     },
     timeFrom(time) {
       return moment.unix(time).format('DD/MM/YYYY HH:mm:ss')
-    },
-    timeAgeSeconds(time) {
-      const exp = moment(moment.unix(time))
-      const now = moment(new Date())
-      const seconds = now.diff(exp, 'seconds')
-      return seconds < 59 ? now.diff(exp, 'seconds') + ' seconds ago ' : this.timeAge(time)
     },
     goToAddress(address) {
       this.$router.push({ name: 'address', params: { id: address } })

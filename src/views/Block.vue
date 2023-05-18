@@ -55,7 +55,7 @@
         <!-- <span class="link" @click="goToAddress(detail.miner)">
           {{ detail.miner }}
         </span> -->
-        <a :href="`/address/${detail.miner}`">{{ detail.miner }}</a>
+        <a :href="`/address/${detail.miner}`" class="link">{{ detail.miner }}</a>
       </div>
 
       <div class="row">
@@ -96,6 +96,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
+import { fromNow } from '@/utils/helper.js'
 import moment from 'moment'
 
 export default {
@@ -149,6 +150,7 @@ export default {
     }
   },
   methods: {
+    fromNow,
     viewNextBlock() {
       const block = this.detail.number + 1
       this.$router.push({ name: 'block', params: { id: block } })
@@ -177,9 +179,6 @@ export default {
     toGwei(wei = 0) {
       return web3.utils.fromWei(wei.toString(), 'gwei')
     },
-    timeAge(timeStamp) {
-      return moment(moment.unix(timeStamp)).fromNow()
-    },
     async getDetailBlock(num) {
       try {
         this.loading = true
@@ -188,13 +187,12 @@ export default {
         const latestFinalizedBlock = await web3.eth.getBlock('finalized')
         this.finalized = num <= latestFinalizedBlock.number
         this.detail = Object.assign({}, result)
-        this.timeStamp = `${moment(moment.unix(result.timestamp)).fromNow()} (${moment
+        this.timeStamp = `${this.fromNow(result.timestamp)} (${moment
           .unix(result.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
         this.loading = false
       } catch (error) {
         console.log(error)
-        this.$store.dispatch('setError', ERROR_BLOCK)
       }
     }
   }
@@ -300,10 +298,10 @@ textarea {
   .second {
     max-width: 120px;
     width: 120px;
-    min-width: unset;
+    min-width: 120px;
   }
   .link {
-    width: calc(100% - 150px);
+    max-width: calc(100% - 150px);
     overflow: hidden;
     text-overflow: ellipsis;
   }

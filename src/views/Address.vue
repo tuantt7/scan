@@ -56,8 +56,7 @@
 
           <span class="hash">
             <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
-              <!-- <span>{{ timeAge(tran.timeStamp) }} </span> -->
-              <p>{{ customTime(tran.timeStamp) }}</p>
+              <p>{{ fromNow(tran.timeStamp) }}</p>
             </el-tooltip>
           </span>
 
@@ -97,7 +96,11 @@
             <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
           </div>
 
-          <span class="hash">{{ value(tran.value) }}</span>
+          <span class="hash">
+            <el-tooltip v-if="tran.value" :content="toETH(tran.value) + ' ETH'" placement="top">
+              {{ value(tran.value) }}
+            </el-tooltip>
+          </span>
           <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
         </div>
         <el-pagination
@@ -115,6 +118,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
+import { fromNow } from '@/utils/helper.js'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '@/stores/address.js'
@@ -156,54 +160,7 @@ export default {
     }
   },
   methods: {
-    customTime(time) {
-      const exp = moment(moment.unix(time))
-      const now = moment(new Date())
-
-      const seconds = now.diff(exp, 'seconds')
-      if (seconds < 59) return now.diff(exp, 'seconds') + ' seconds ago '
-
-      var diffMs = now - exp
-      var diffDays = Math.floor(diffMs / 86400000)
-      var diffHrs = Math.floor((diffMs % 86400000) / 3600000)
-      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000)
-
-      if (diffDays > 0) {
-        if (diffHrs > 0) {
-          return `${diffDays} ${diffDays > 1 ? 'days' : 'day'} ${diffHrs} ${
-            diffHrs > 1 ? 'hrs ago' : 'hr ago'
-          }`
-        }
-
-        if (diffHrs === 0) {
-          return `${diffDays} ${diffDays > 1 ? 'days' : 'day'} ${diffMins} ${
-            diffMins > 1 ? 'mins ago' : 'min ago'
-          }`
-        }
-
-        return diffDays + ' day ' + diffHrs + ' hrs ago'
-      }
-      if (diffHrs > 0) {
-        if (diffMins > 0) {
-          return `${diffHrs} ${diffHrs > 1 ? 'hrs' : 'hr'} ${diffMins} ${
-            diffMins > 1 ? 'mins ago' : 'min ago'
-          }`
-        }
-
-        if (diffMins === 0) {
-          return `${diffHrs} ${diffHrs > 1 ? 'hrs' : 'hr'}`
-        }
-
-        return diffHrs + ' hour ' + diffMins + ' mins ago'
-      }
-      if (diffMins > 0) {
-        if (diffMins > 1) return diffMins + ' mins ago'
-
-        return diffMins + ' min ago'
-      }
-
-      return this.timeAge(time)
-    },
+    fromNow,
     isAddress(address) {
       return address.toLowerCase() === this.$route.params.id.toLowerCase()
     },
@@ -231,12 +188,12 @@ export default {
     value(value) {
       return web3.utils.fromWei(value, 'ether').toString().slice(0, 10) + ' ETH'
     },
+    toETH(wei = 0) {
+      return web3.utils.fromWei(wei.toString(), 'ether')
+    },
     TxnFree(gas = 1, gasPrice = 1) {
       const price = web3.utils.fromWei(gas, 'gwei') * web3.utils.fromWei(gasPrice, 'gwei')
       return price.toString().slice(0, 10)
-    },
-    timeAge(timeStamp) {
-      return moment(moment.unix(timeStamp)).fromNow()
     },
     async getAccountInformation(address) {
       const addressCode = await web3.eth.getCode(this.$route.params.id)
