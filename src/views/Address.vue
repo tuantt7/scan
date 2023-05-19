@@ -12,28 +12,36 @@
     <div v-else class="over-view">
       <div class="balance card">
         <strong>Overview</strong>
-        <p>ETH BALANCE</p>
-        <small>{{ balance }} ETH</small>
+        <p>ETH Balance</p>
+        <small class="ml-10">{{ balance }} ETH</small>
       </div>
       <div class="info card">
         <strong>More Info</strong>
         <p>Last transaction sent:</p>
-        <div class="flex">
-          <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="hash link">
+        <div class="txn">
+          <a
+            v-if="transactions.length"
+            :href="`/transaction/${transactions[0].hash}`"
+            class="link"
+          >
             {{ transactions[0].hash }}
           </a>
-          <span v-if="transactions.length">
+          <p v-if="transactions.length">
             {{ timeFrom(transactions[0].timeStamp) }}
-          </span>
+          </p>
         </div>
         <p>First transaction sent:</p>
-        <div class="flex">
-          <a v-if="firstTransactions" :href="`/transaction/${firstTransactions.hash}`" class="hash link">
+        <div class="txn">
+          <a
+            v-if="firstTransactions"
+            :href="`/transaction/${firstTransactions.hash}`"
+            class="link"
+          >
             {{ firstTransactions.hash }}
           </a>
-          <span v-if="firstTransactions">
+          <p v-if="firstTransactions">
             {{ timeFrom(firstTransactions.timeStamp) }}
-          </span>
+          </p>
         </div>
       </div>
     </div>
@@ -339,5 +347,20 @@ export default {
 .address-info {
   display: flex;
   align-items: center;
+}
+
+.txn {
+  width: 100%;
+  a , p {
+    margin-left: 10px;
+  }
+}
+
+.link {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  width: unset;
+  text-overflow: ellipsis;
 }
 </style>
