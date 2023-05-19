@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const sepoliaNetwork = import.meta.env.VITE_SEPOLIA_NETWORK
 const sepoliaURL = import.meta.env.VITE_SEPOLIA_URL
-const mainnetURL = import.meta.env.VITE_MAIN_URL
+const mainnetURL = import.meta.env.VITE_MAINNET_URL
 const net = localStorage.getItem('net')
 const networkUrl = net === sepoliaNetwork ? sepoliaURL : mainnetURL
 
