@@ -3,7 +3,7 @@
     <el-skeleton v-if="loading" :rows="6" animated />
     <div v-else class="list">
       <div class="transaction-list">
-        <span>{{ transactions.length }} transactions from block {{ $route.params.id }}</span>
+        <span>{{ total }} transactions from block {{ $route.params.id }}</span>
         <div class="transaction">
           <strong class="hash">Txn Hash</strong>
           <strong class="hash">Block</strong>
@@ -23,8 +23,8 @@
             <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran.blockNumber }}</a>
           </span>
           <span class="hash">
-            <el-tooltip :content="timeFrom(block.timestamp)" placement="top">
-              <span>{{ timeAge(block.timestamp) }}</span>
+            <el-tooltip :content="timeFrom(tran.timestamp)" placement="top">
+              <span>{{ fromNow(tran.timestamp) }}</span>
             </el-tooltip>
           </span>
           <div class="hash">
@@ -50,7 +50,7 @@
           @current-change="(val) => (page = val)"
           background
           layout="prev, pager, next"
-          :total="transactions.length"
+          :total="total"
           :page-size="10"
           class="my-10"
         />
@@ -61,6 +61,8 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
+import { getModel } from '@/abiApi.js'
+import { fromNow } from '@/utils/helper.js'
 export default {
   name: 'HomePage',
   data() {
@@ -76,11 +78,6 @@ export default {
       block: {}
     }
   },
-  computed: {
-    totalPage() {
-      return Math.ceil(this.transactions?.length / 10)
-    }
-  },
   watch: {
     '$route.params.id': {
       handler(id) {
@@ -91,34 +88,21 @@ export default {
     },
     page() {
       this.loading = true
-      this.transactionsList()
+      this.getTransactions(this.$route.params.id)
     }
   },
   methods: {
+    fromNow,
     address(address) {
       if (!address) return ''
       const text = `${address.slice(0, 8)}...${address.substr(address.length - 8)}`
       return text
     },
     async getTransactions(id) {
-      const result = await web3.eth.getBlock(id)
-      console.log(result)
-      this.block = result
-      this.transactions = result.transactions
-      await this.transactionsList()
-    },
-    async transactionsList() {
-      this.transactionsDetail = []
-      const trans = this.transactions
-        .reverse()
-        .filter((item, index) => index >= this.page * 10 - 10 && index <= this.page * 10 - 1)
-      trans.forEach(async (item) => {
-        const detail = await web3.eth.getTransaction(item)
-        const detail2 = await web3.eth.getTransactionReceipt(item)
-        detail.contractAddress = detail2.contractAddress
-        this.transactionsDetail.push(detail)
-      })
-      console.log(this.transactionsDetail)
+      this.loading = true
+      const result1 = await getModel('txsBlock', { id, page: this.page })
+      this.transactionsDetail = result1.data.transactions
+      this.total = result1.data.total
       this.loading = false
     },
     timeFrom(time) {
@@ -133,19 +117,9 @@ export default {
     goToTransaction(hash) {
       this.$router.push({ name: 'transaction', params: { id: hash } })
     },
-    decode(data) {
-      return web3.utils.stringToHex(data)
-    },
     value(value) {
       return web3.utils.fromWei(value, 'ether').toString().slice(0, 10) + ' ETH'
     },
-    TxnFree(gas = 1, gasPrice = 1) {
-      const price = web3.utils.fromWei(gas, 'gwei') * web3.utils.fromWei(gasPrice, 'gwei')
-      return price.toString().slice(0, 10)
-    },
-    timeAge(timeStamp) {
-      return moment(moment.unix(timeStamp)).fromNow()
-    }
   }
 }
 </script>

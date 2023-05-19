@@ -22,7 +22,7 @@
 
       <div class="row">
         <span class="second">Status:</span>
-        <el-tag v-if="finalized" type="success"
+        <el-tag v-if="detail.finalized" type="success"
           >Finalized <el-icon><CircleCheck /></el-icon>
         </el-tag>
         <el-tag v-else type="info">Not Finalized</el-tag>
@@ -97,6 +97,7 @@
 <script>
 import web3 from '@/utils/web3'
 import { fromNow } from '@/utils/helper.js'
+import { getModel } from '@/abiApi.js'
 import moment from 'moment'
 
 export default {
@@ -182,13 +183,10 @@ export default {
     async getDetailBlock(num) {
       try {
         this.loading = true
-        const result = await web3.eth.getBlock(num)
-        console.log(result)
-        const latestFinalizedBlock = await web3.eth.getBlock('finalized')
-        this.finalized = num <= latestFinalizedBlock.number
-        this.detail = Object.assign({}, result)
-        this.timeStamp = `${this.fromNow(result.timestamp)} (${moment
-          .unix(result.timestamp)
+        const result = await getModel('block', { id: num })
+        this.detail = Object.assign({}, result.data)
+        this.timeStamp = `${this.fromNow(this.detail.timestamp)} (${moment
+          .unix(this.detail.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
         this.loading = false
       } catch (error) {
