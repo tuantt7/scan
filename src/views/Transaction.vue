@@ -116,8 +116,10 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { postModel } from '@/abiApi.js'
+import { postModel, getModel } from '@/abiApi.js'
 import { fromNow } from '@/utils/helper.js'
+
+const network = localStorage.getItem('net')
 
 export default {
   name: 'HomePage',
@@ -193,32 +195,29 @@ export default {
     },
     async getDetailTran(hash) {
       try {
-        const result = await web3.eth.getTransaction(hash)
-        const result2 = await web3.eth.getTransactionReceipt(hash)
-        const block = await web3.eth.getBlock(result.blockNumber)
-        this.timeStamp = `${this.fromNow(block.timestamp)} (${moment
-          .unix(block.timestamp)
+        const result = await getModel('transaction', { id: hash })
+        this.status = result.data.receipt.status
+        this.detail = result.data.response
+        this.detail2 = result.data.receipt
+        this.timeStamp = `${this.fromNow(result.data.response.timestamp)} (${moment
+          .unix(result.data.response.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
-        this.status = result2.status
-        this.detail = result
-        this.detail2 = result2
-        if (!result.blockNumber) {
+
+        if (!result.data.response.blockNumber) {
           setTimeout(() => {
             this.getDetailTran(hash)
           }, 1000)
         }
-        if (result.to) {
-          const addressCode = await web3.eth.getCode(result.to)
-          if (addressCode !== '0x') {
-            const data = {
-              contract: result.to,
-              hx: result.input,
-              net: localStorage.getItem('net')
-            }
-            const res = await postModel('abi', data)
-            if (res && res.data.status == 1) {
-              this.decodeContract = res.data
-            }
+
+        if (result.data.response.isContract) {
+          const data = {
+            contract: result.data.response.to,
+            hx: result.data.response.input,
+            net: network
+          }
+          const res = await postModel('abi', data)
+          if (res && res.data.decodedData.status == 1) {
+            this.decodeContract = res.data.decodedData
           }
         }
       } catch (error) {
