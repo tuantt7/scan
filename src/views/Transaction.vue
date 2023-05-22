@@ -2,115 +2,191 @@
   <div class="detail-page">
     <strong>Transaction Details</strong>
     <el-skeleton v-if="!detail" :rows="6" animated />
-    <div v-else class="detail card">
-      <div class="row">
-        <span class="second">Transaction Hash:</span>
-        <span class="phash">{{ detail?.hash }}</span>
-      </div>
-      <div class="row">
-        <span class="second">Status: </span>
-        <el-tag v-if="status && detail?.blockNumber" class="ml-2" type="success"> Success</el-tag>
-        <el-tag v-else-if="!status && detail?.blockNumber" class="ml-2" type="danger"> Fail</el-tag>
-        <span v-else-if="!status && !detail?.blockNumber" v-loading="true">Pending</span>
-      </div>
-      <div class="row">
-        <span class="second">Block:</span>
-        <a :href="`/block/${detail.blockNumber}`">{{ detail?.blockNumber }}</a>
-      </div>
-      <div class="row">
-        <span class="second">Timestamp:</span>
-        {{ timeStamp }}
-      </div>
-      <div class="row">
-        <span class="second">From:</span>
-        <a :href="`/address/${detail.from}`" class="link">{{ detail?.from }}</a>
-      </div>
-      <div class="row">
-        <span class="second">To:</span>
-        <a :href="`/address/${detail.to || detail2.contractAddress}`" class="link">
-          {{ detail?.to || detail2?.contractAddress }}
-        </a>
-        <span v-if="detail2?.contractAddress" class="ml-10"
-          >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
-        ></span>
-      </div>
-      <div class="row">
-        <span class="second">Value:</span>
-        {{ value }}
-      </div>
-      <div class="row">
-        <span class="second">Transaction Fee:</span>
-        {{ fee }}
-      </div>
-      <div class="row">
-        <span class="second">Gas Price:</span>
-        {{ gas }}
-      </div>
-    </div>
-    <div v-if="detail" class="detail card">
-      <div class="row">
-        <span class="second">Gas Limit & Usage by Txn :</span>
-        {{ formatNumber(detail?.gas) }}
-        <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }">
-          | {{ formatNumber(detail2?.gasUsed) }} ({{ percent }})
-        </span>
-      </div>
-      <div class="row">
-        <span class="second">Gas Fee:</span>
-        MAX: {{ toGwei(detail?.maxFeePerGas) }} Gwei | Max Priority:
-        {{ toGwei(detail?.maxPriorityFeePerGas) }} Gwei
-      </div>
-      <div class="row">
-        <span class="second">Other Attributes:</span>
-        <span>
-          Nonce: <el-tag type="info" class="ml-5"> {{ detail?.nonce }}</el-tag>
-          <pre>&</pre>
-          Position In Block:
-          <el-tag type="info" class="ml-5"> {{ detail?.transactionIndex }}</el-tag>
-        </span>
-      </div>
-      <div class="row">
-        <span class="second">Input Data:</span>
-        <div class="input-data">
-          <el-tabs v-model="activeTab" class="demo-tabs">
-            <el-tab-pane label="Originnal" name="originnal">
-              <textarea
-                v-if="detail && detail.input"
-                v-model="detail.input"
-                disabled
-                rows="5"
-              ></textarea>
-            </el-tab-pane>
-            <el-tab-pane label="Decode" name="decode">
-              <span v-if="decodeContract && decodeContract.name">
-                Function:
-                <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag>
-              </span>
-              <div v-if="decodeContract && decodeContract.name" class="table-decode">
-                <table>
-                  <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Data</th>
-                  </tr>
-                  <tr v-for="item in decodeContract.params" :key="item.name">
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.type }}</td>
-                    <td>{{ item.value }}</td>
-                  </tr>
-                </table>
+    <el-tabs v-else v-model="view" class="demo-tabs">
+      <el-tab-pane label="Overview" name="overview">
+        This is a Sepolia Testnet transaction only
+        <div class="detail card">
+          <div class="row">
+            <span class="second">Transaction Hash:</span>
+            <span class="phash">{{ detail?.hash }}</span>
+          </div>
+          <div class="row">
+            <span class="second">Status: </span>
+            <el-tag v-if="status && detail?.blockNumber" class="ml-2" type="success">
+              Success</el-tag
+            >
+            <el-tag v-else-if="!status && detail?.blockNumber" class="ml-2" type="danger">
+              Fail</el-tag
+            >
+            <span v-else-if="!status && !detail?.blockNumber" v-loading="true">Pending</span>
+          </div>
+          <div class="row">
+            <span class="second">Block:</span>
+            <a :href="`/block/${detail.blockNumber}`">{{ detail?.blockNumber }}</a>
+          </div>
+          <div class="row">
+            <span class="second">Timestamp:</span>
+            {{ timeStamp }}
+          </div>
+          <div class="row">
+            <span class="second">From:</span>
+            <a :href="`/address/${detail.from}`" class="link">{{ detail?.from }}</a>
+            <Copy :text="detail?.from" class="ml-10" />
+          </div>
+          <div class="row">
+            <span class="second">To:</span>
+            <a :href="`/address/${detail.to || detail2.contractAddress}`" class="link">
+              {{ detail?.to || detail2?.contractAddress }}
+            </a>
+            <span v-if="detail2?.contractAddress" class="ml-10"
+              >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
+            ></span>
+            <Copy :text="detail?.to || detail2?.contractAddress" class="ml-10" />
+          </div>
+          <div v-if="transferred.length" class="row">
+            <span class="second">Tokens Transferred:</span>
+            <div class="w-100">
+              <div v-for="item in transferred" :key="item.id" class="wrap">
+                <p>
+                  From
+                  <a :href="`/address/${item.trasnfers.returnValues.from}`" class="link">
+                    {{ item.trasnfers.returnValues.from }}
+                  </a>
+                </p>
+
+                <p>
+                  to
+                  <a :href="`/address/${item.trasnfers.returnValues.to}`" class="link">
+                    {{ item.trasnfers.returnValues.to }}
+                  </a>
+                </p>
+
+                <p>
+                  For {{ item.value / Math.pow(10, item.decimals) }} {{ item.name }} ({{
+                    item.symbol
+                  }})
+                </p>
               </div>
-              <textarea
-                v-else-if="detail && detail.input"
-                :value="decodeInput(detail.input)"
-                disabled
-                rows="5"
-              ></textarea>
-            </el-tab-pane>
-          </el-tabs>
+            </div>
+          </div>
+          <div class="row">
+            <span class="second">Value:</span>
+            {{ value }}
+          </div>
+          <div class="row">
+            <span class="second">Transaction Fee:</span>
+            {{ fee }}
+          </div>
+          <div class="row">
+            <span class="second">Gas Price:</span>
+            {{ gas }}
+          </div>
         </div>
-      </div>
-    </div>
+        <div v-if="detail" class="detail card">
+          <div class="row">
+            <span class="second">Gas Limit & Usage by Txn :</span>
+            {{ formatNumber(detail?.gas) }}
+            <span v-if="detail2 && detail2.gasUsed" :style="{ 'margin-left': '5px' }">
+              | {{ formatNumber(detail2?.gasUsed) }} ({{ percent }})
+            </span>
+          </div>
+          <div class="row">
+            <span class="second">Gas Fee:</span>
+            MAX: {{ toGwei(detail?.maxFeePerGas) }} Gwei | Max Priority:
+            {{ toGwei(detail?.maxPriorityFeePerGas) }} Gwei
+          </div>
+          <div class="row">
+            <span class="second">Other Attributes:</span>
+            <span>
+              Nonce: <el-tag type="info" class="ml-5"> {{ detail?.nonce }}</el-tag>
+              <pre>&</pre>
+              Position In Block:
+              <el-tag type="info" class="ml-5"> {{ detail?.transactionIndex }}</el-tag>
+            </span>
+          </div>
+          <div class="row">
+            <span class="second">Input Data:</span>
+            <div class="input-data">
+              <el-tabs v-model="activeTab" class="demo-tabs">
+                <el-tab-pane label="Originnal" name="originnal">
+                  <textarea
+                    v-if="detail && detail.input"
+                    v-model="detail.input"
+                    disabled
+                    rows="5"
+                  ></textarea>
+                </el-tab-pane>
+                <el-tab-pane label="Decode" name="decode">
+                  <span v-if="decodeContract && decodeContract.name">
+                    Function:
+                    <el-tag type="info">{{ decodeContract?.name || '' }}</el-tag>
+                  </span>
+                  <div
+                    v-if="decodeContract && decodeContract.name && decodeContract.params.length"
+                    class="table-decode"
+                  >
+                    <table>
+                      <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Data</th>
+                      </tr>
+                      <tr v-for="item in decodeContract.params" :key="item.name">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.type }}</td>
+                        <td>{{ item.value }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                  <textarea
+                    v-else-if="detail && detail.input && !decodeContract"
+                    :value="decodeInput(detail.input)"
+                    disabled
+                    rows="5"
+                  ></textarea>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+          </div>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane :label="`Logs (${logs.length})`" name="logs">
+        Transaction Receipt Event Logs
+        <div v-for="(log, index) in logs" :key="log.address + index" class="detail card">
+          <div class="row">
+            <span class="second">Address:</span>
+            <span class="phash">{{ log.address }}</span>
+          </div>
+          <div class="row">
+            <span class="second">Name:</span>
+            <span class="phash">{{ log.event }}</span>
+          </div>
+          <div class="row">
+            <span class="second">Topics:</span>
+            <div class="w-100">
+              <p class="break">
+                <el-tag type="info" class="mr-10">0</el-tag>{{ log.trasnfers.signature }}
+              </p>
+              <p v-for="(addr, index) in log.addressLogs" :key="addr + index" class="break">
+                <el-tag type="info" class="mr-10">
+                  {{ index + 1 }}
+                </el-tag>
+                <el-icon class="mr-10"><Right /></el-icon>
+                <a :href="`/address/${addr}`"> {{ addr }}</a>
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <span class="second">Data:</span>
+            <div class="w-100 log">
+              <p v-for="(value, name, indexLog) in log.data" :key="value + indexLog" class="break">
+                {{ name }}: {{ value }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 <script>
@@ -136,7 +212,9 @@ export default {
       timeStamp: null,
       detail2: null,
       decodeContract: null,
-      activeTab: 'originnal'
+      activeTab: 'originnal',
+      logs: [],
+      view: 'overview'
     }
   },
   computed: {
@@ -159,6 +237,9 @@ export default {
     gas() {
       const gas = this.detail?.gasPrice || 0
       return `${this.toGwei(gas)} Gwei ( ${this.toETH(gas)} ETH )`
+    },
+    transferred() {
+      return this.logs.filter((item) => item.event === 'Transfer')
     }
   },
   watch: {
@@ -193,6 +274,11 @@ export default {
     timeAge(timeStamp) {
       return moment(moment.unix(timeStamp)).fromNow()
     },
+    async getLogs() {
+      const result = await getModel('get-log', { hash: this.$route.params.id })
+      this.logs = result.data
+    },
+
     async getDetailTran(hash) {
       try {
         const result = await getModel('transaction', { id: hash })
@@ -215,10 +301,14 @@ export default {
             hx: result.data.response.input,
             net: network
           }
-          const res = await postModel('abi', data)
+          const res = await postModel('decode', data)
           if (res && res.data.decodedData.status == 1) {
             this.decodeContract = res.data.decodedData
           }
+        }
+
+        if (result.data.receipt.logs.length) {
+          this.getLogs()
         }
       } catch (error) {
         console.log(error)
@@ -306,6 +396,43 @@ textarea {
   background-color: #fff;
 }
 
+.log {
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 6px;
+  overflow: auto;
+}
+
+.break {
+  display: flex;
+  align-items: center;
+  word-wrap: break-word;
+  word-break: break-word;
+  margin-bottom: 5px;
+}
+
+.wrap {
+  position: relative;
+  width: 100%;
+  background-color: #eee;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 15px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 5px;
+    width: 6px;
+    height: 6px;
+    background-color: #000000;
+    border-radius: 50%;
+  }
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
 @media only screen and (max-width: 992px) {
   .detail-page {
     font-size: 14px;
@@ -318,7 +445,8 @@ textarea {
   .input-data {
     width: calc(100% - 120px);
   }
-  .link {
+  .link,
+  .wrap {
     max-width: calc(100% - 150px);
     overflow: hidden;
     text-overflow: ellipsis;
