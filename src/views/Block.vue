@@ -104,24 +104,14 @@ export default {
   name: 'HomePage',
   data() {
     return {
-      balance: null,
-      page: 1,
-      offset: 10000,
-      total: 0,
-      transactionList: [],
       detail: null,
-      status: null,
-      pending: true,
       timeStamp: null,
-      detail2: null,
-      decodeContract: null,
-      activeTab: 'originnal',
       loading: true
     }
   },
   computed: {
     to() {
-      return this.detail?.to || this.detail2?.contractAddress
+      return this.detail?.to
     },
     percent() {
       const percent = (this.detail.gasUsed / this.detail.gasLimit) * 100

@@ -4,7 +4,7 @@
     <div class="card -head" v-else>
       <div class="card-body address-info">
         <strong>{{ addressType }}</strong>
-        <span class="ml-10">{{ $route.params.id }}</span>
+        <span class="ml-10 address">{{ $route.params.id }}</span>
         <Copy :text="$route.params.id" class="ml-10" />
       </div>
     </div>
@@ -13,17 +13,15 @@
       <div class="balance card">
         <strong>Overview</strong>
         <p>ETH Balance</p>
-        <small class="ml-10">{{ balance }} ETH</small>
+        <el-tooltip :content="balance + ' ETH'" placement="top">
+          <small class="ml-10">{{ ETHbalance }}</small>
+        </el-tooltip>
       </div>
       <div class="info card">
         <strong>More Info</strong>
         <p>Last transaction sent:</p>
         <div class="txn">
-          <a
-            v-if="transactions.length"
-            :href="`/transaction/${transactions[0].hash}`"
-            class="link"
-          >
+          <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="link">
             {{ transactions[0].hash }}
           </a>
           <p v-if="transactions.length">
@@ -32,11 +30,7 @@
         </div>
         <p>First transaction sent:</p>
         <div class="txn">
-          <a
-            v-if="firstTransactions"
-            :href="`/transaction/${firstTransactions.hash}`"
-            class="link"
-          >
+          <a v-if="firstTransactions" :href="`/transaction/${firstTransactions.hash}`" class="link">
             {{ firstTransactions.hash }}
           </a>
           <p v-if="firstTransactions">
@@ -163,8 +157,8 @@ export default {
         (item, index) => index >= this.dataPage * 50 - 50 && index <= this.dataPage * 50 - 1
       )
     },
-    totalPage() {
-      return Math.ceil(this.transactions?.length / 50)
+    ETHbalance() {
+      return this.balance.toString().slice(0, 15) + ' ETH'
     }
   },
   watch: {
@@ -351,7 +345,8 @@ export default {
 
 .txn {
   width: 100%;
-  a , p {
+  a,
+  p {
     margin-left: 10px;
   }
 }
@@ -362,5 +357,22 @@ export default {
   overflow: hidden;
   width: unset;
   text-overflow: ellipsis;
+}
+
+.address {
+  display: block;
+  max-width: calc(100% - 100px);
+  overflow: hidden;
+  width: unset;
+  text-overflow: ellipsis;
+}
+
+@media only screen and (max-width: 992px) {
+  .txn {
+    a,
+    p {
+      margin-left: 0;
+    }
+  }
 }
 </style>
