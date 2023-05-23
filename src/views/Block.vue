@@ -45,9 +45,9 @@
 
       <div class="row">
         <span class="second">Withdrawals:</span>
-        <span v-if="detail?.withdrawals?.length">
+        <a :href="`/withdrawal/${detail?.number}`">
           {{ formatNumber(detail.withdrawals?.length) }} withdrawals
-        </span>
+        </a>
       </div>
 
       <div v-if="detail?.miner" class="row">

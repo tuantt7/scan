@@ -4,6 +4,7 @@ import TransactionView from '../views/Transaction.vue'
 import BlockView from '../views/Block.vue'
 import HomeView from '../views/Home.vue'
 import TransactionFromBlock from '../views/TransactionFromBlock.vue'
+import Withdrawal from '../views/Withdrawal.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,11 @@ const router = createRouter({
       path: '/txn-block/:id',
       name: 'transactionFromBlock',
       component: TransactionFromBlock
+    },
+    {
+      path: '/withdrawal/:id',
+      name: 'withdrawal',
+      component: Withdrawal
     },
   ]
 })
