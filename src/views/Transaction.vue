@@ -260,8 +260,7 @@ export default {
       let val = ''
       if (!item.value) {
         for (const property in item.data) {
-          console.log(this.isNumeric(item.data[property]))
-          if (this.isNumeric(item.data[property])) {
+          if (this.isNumeric(item.data[property]) && !web3.utils.isAddress(item.data[property])) {
             val = `${item.data[property] / Math.pow(10, item.decimals)} ${item.name} (${
               item.symbol
             })`

@@ -68,7 +68,9 @@ export default {
   computed: {
     ...mapState(useAddressStore, ['dataPage', 'tranLength', 'offset', 'time']),
     transactions() {
-      return this.blocks[0]?.transactions.slice(0, 5)
+      return this.blocks[0]?.transactions.length
+        ? this.blocks[0]?.transactions.slice(0, 5)
+        : this.blocks[1]?.transactions.slice(0, 5)
     },
     isMainnet() {
       return localStorage.getItem('net') === mainnet
@@ -80,7 +82,7 @@ export default {
   methods: {
     fromNow,
     async getLatestBlock() {
-      const latest = await web3.eth.getBlock('finalized')
+      const latest = await web3.eth.getBlock('latest')
       this.latest = latest.number
       this.getLastFiveBlocks()
     },

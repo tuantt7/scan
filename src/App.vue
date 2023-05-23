@@ -32,11 +32,10 @@ export default {
   methods: {
     changeValue(val) {
       localStorage.setItem('net', val)
-      console.log(this.$route.name)
       if (this.$route.name === 'home') {
         window.location.reload()
       } else {
-        this.$router.push({ name: 'home' })
+        window.location.href = '/'
       }
     }
   }
