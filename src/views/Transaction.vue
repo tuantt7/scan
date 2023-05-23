@@ -431,7 +431,7 @@ textarea {
 }
 
 .transferred {
-  overflow: scroll;
+  overflow: auto;
 }
 
 .link {
@@ -445,7 +445,7 @@ textarea {
   padding: 15px;
   border-radius: 6px;
   margin-top: 15px;
-  overflow: scroll;
+  overflow: auto;
   &::before {
     content: '';
     position: absolute;
