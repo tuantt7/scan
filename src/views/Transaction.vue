@@ -43,9 +43,10 @@
             ></span>
             <Copy :text="detail?.to || detail2?.contractAddress" class="ml-10" />
           </div>
-          <div v-if="transferred.length" class="row">
+          <div v-if="logsLoading !== null" class="row">
             <span class="second">Tokens Transferred:</span>
-            <div class="w-100 transferred">
+            <el-skeleton v-if="logsLoading" :rows="2" animated />
+            <div v-else class="w-100 transferred">
               <div v-for="item in transferred" :key="item.id" class="wrap">
                 <p>
                   From
@@ -214,7 +215,8 @@ export default {
       decodeContract: null,
       activeTab: 'originnal',
       logs: [],
-      view: 'overview'
+      view: 'overview',
+      logsLoading: null
     }
   },
   computed: {
@@ -295,6 +297,11 @@ export default {
     async getLogs() {
       const result = await getModel('get-log', { hash: this.$route.params.id })
       this.logs = result.data
+      if (this.transferred.length) {
+        this.logsLoading = false
+      } else {
+        this.logsLoading = null
+      }
     },
 
     async getDetailTran(hash) {
@@ -314,6 +321,7 @@ export default {
         }
 
         if (result.data.receipt.logs.length) {
+          this.logsLoading = true
           this.getLogs()
         }
 
