@@ -153,6 +153,7 @@
         Transaction Receipt Event Logs
         <div v-for="(log, index) in logs" :key="log.address + index" class="detail card">
           <div class="row">
+            <span class="index">{{ log.logIndex }}</span>
             <span class="title">Address:</span>
             <span class="phash">{{ log.address }}</span>
           </div>
@@ -365,10 +366,23 @@ export default {
 }
 
 .row {
+  position: relative;
   display: flex;
   padding: 15px 0;
   width: 100%;
   border-bottom: solid 1px #eee;
+  .index {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    height: 20px;
+    padding: 0 3px;
+    line-height: 20px;
+    background-color: #409eff;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+  }
 }
 .input-data {
   width: calc(100% - 300px);
