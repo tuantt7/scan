@@ -2,7 +2,7 @@
   <div class="detail-page">
     <strong>Transaction Details</strong>
     <el-skeleton v-if="!detail" :rows="6" animated />
-    <el-tabs v-else v-model="view" class="demo-tabs">
+    <el-tabs v-else v-model="view" class="view-tabs">
       <el-tab-pane label="Overview" name="overview">
         This is a Sepolia Testnet transaction only
         <div class="detail card">
@@ -45,27 +45,26 @@
           </div>
           <div v-if="transferred.length" class="row">
             <span class="second">Tokens Transferred:</span>
-            <div class="w-100">
+            <div class="w-100 transferred">
               <div v-for="item in transferred" :key="item.id" class="wrap">
                 <p>
                   From
-                  <a :href="`/address/${item.trasnfers.returnValues.from}`" class="link">
-                    {{ item.trasnfers.returnValues.from }}
+                  <a :href="`/address/${item.addressLogs[0]}`" class="link">
+                    {{ item.addressLogs[0] }}
                   </a>
                 </p>
 
                 <p>
                   to
-                  <a :href="`/address/${item.trasnfers.returnValues.to}`" class="link">
-                    {{ item.trasnfers.returnValues.to }}
+                  <a :href="`/address/${item.addressLogs[1]}`" class="link">
+                    {{ item.addressLogs[1] }}
                   </a>
                 </p>
 
-                <p>
-                  For {{ item.value / Math.pow(10, item.decimals) }} {{ item.name }} ({{
-                    item.symbol
-                  }})
+                <p v-if="item.data.tokenId">
+                  ERC-721 Token ID [{{ item.data.tokenId }}] {{ item.name }} ({{ item.symbol }})
                 </p>
+                <p v-else>For {{ valueTransfer(item) }}</p>
               </div>
             </div>
           </div>
@@ -154,15 +153,15 @@
         Transaction Receipt Event Logs
         <div v-for="(log, index) in logs" :key="log.address + index" class="detail card">
           <div class="row">
-            <span class="second">Address:</span>
+            <span class="title">Address:</span>
             <span class="phash">{{ log.address }}</span>
           </div>
           <div class="row">
-            <span class="second">Name:</span>
+            <span class="title">Name:</span>
             <span class="phash">{{ log.event }}</span>
           </div>
           <div class="row">
-            <span class="second">Topics:</span>
+            <span class="title">Topics:</span>
             <div class="w-100">
               <p class="break">
                 <el-tag type="info" class="mr-10">0</el-tag>{{ log.trasnfers.signature }}
@@ -177,9 +176,9 @@
             </div>
           </div>
           <div class="row">
-            <span class="second">Data:</span>
+            <span class="title">Data:</span>
             <div class="w-100 log">
-              <p v-for="(value, name, indexLog) in log.data" :key="value + indexLog" class="break">
+              <p v-for="(value, name, indexLog) in log.data" :key="value + indexLog">
                 {{ name }}: {{ value }}
               </p>
             </div>
@@ -252,6 +251,25 @@ export default {
     }
   },
   methods: {
+    isNumeric(str) {
+      if (typeof str != 'string') return false
+      return !isNaN(str) && !isNaN(parseFloat(str))
+    },
+    valueTransfer(item) {
+      let val = ''
+      if (!item.value) {
+        for (const property in item.data) {
+          console.log(this.isNumeric(item.data[property]))
+          if (this.isNumeric(item.data[property])) {
+            val = `${item.data[property] / Math.pow(10, item.decimals)} ${item.name} (${
+              item.symbol
+            })`
+            break
+          }
+        }
+      }
+      return val || `${item.value / Math.pow(10, item.decimals)} ${item.name} (${item.symbol})`
+    },
     fromNow,
     formatNumber(num) {
       return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
@@ -295,6 +313,10 @@ export default {
           }, 1000)
         }
 
+        if (result.data.receipt.logs.length) {
+          this.getLogs()
+        }
+
         if (result.data.response.isContract) {
           const data = {
             contract: result.data.response.to,
@@ -302,13 +324,9 @@ export default {
             net: network
           }
           const res = await postModel('decode', data)
-          if (res && res.data.decodedData.status == 1) {
+          if (res && res.message !== 'NOTOK') {
             this.decodeContract = res.data.decodedData
           }
-        }
-
-        if (result.data.receipt.logs.length) {
-          this.getLogs()
         }
       } catch (error) {
         console.log(error)
@@ -348,8 +366,9 @@ export default {
 
 .row {
   display: flex;
-  margin-bottom: 15px;
+  padding: 15px 0;
   width: 100%;
+  border-bottom: solid 1px #eee;
 }
 .input-data {
   width: calc(100% - 300px);
@@ -411,13 +430,22 @@ textarea {
   margin-bottom: 5px;
 }
 
+.transferred {
+  overflow: scroll;
+}
+
+.link {
+  overflow: auto;
+}
+
 .wrap {
   position: relative;
-  width: 100%;
+  width: calc(100% - 30px);
   background-color: #eee;
   padding: 15px;
   border-radius: 6px;
   margin-top: 15px;
+  overflow: scroll;
   &::before {
     content: '';
     position: absolute;
@@ -433,23 +461,34 @@ textarea {
   }
 }
 
+.el-tabs {
+  position: relative;
+  z-index: 0;
+}
+
+.title {
+  color: #6c757d;
+  width: 300px;
+  min-width: 300px;
+  display: block;
+}
+
 @media only screen and (max-width: 992px) {
   .detail-page {
     font-size: 14px;
   }
   .second {
-    max-width: 120px;
-    width: 120px;
-    min-width: 120px;
+    max-width: 80px;
+    width: 80px;
+    min-width: 80px;
+  }
+
+  .title {
+    width: 60px;
+    min-width: 60px;
   }
   .input-data {
     width: calc(100% - 120px);
-  }
-  .link,
-  .wrap {
-    max-width: calc(100% - 150px);
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 

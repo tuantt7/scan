@@ -80,7 +80,7 @@ export default {
   methods: {
     fromNow,
     async getLatestBlock() {
-      const latest = await web3.eth.getBlock('latest')
+      const latest = await web3.eth.getBlock('finalized')
       this.latest = latest.number
       this.getLastFiveBlocks()
     },
