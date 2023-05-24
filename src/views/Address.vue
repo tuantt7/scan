@@ -134,6 +134,7 @@ import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '@/stores/address.js'
 import { getModel } from '@/api.js'
+import { getModel as getApi } from '@/abiApi.js'
 const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
 export default {
   name: 'HomePage',
@@ -165,14 +166,30 @@ export default {
     '$route.params.id': {
       handler(id) {
         this.getAccountInformation(id)
-        this.getTotalTransactions(id)
+        // this.getTotalTransactions(id)
         this.getFirstTransactions(id)
+        this.getTransactions(id)
       },
       deep: true,
       immediate: true
     }
   },
   methods: {
+    async getTransactions(address) {
+      const params = {
+        address,
+        endblock: this.endblock
+      }
+      const result = await getApi('transactions', { ...params })
+      this.loading = false
+      if (result.data.length > 1 && this.transactions.length < 100000) {
+        this.endblock = result.data[result.data.length - 1].blockNumber
+        const ids = new Set(this.transactions.map(({ hash }) => hash))
+        const newData = result.data.filter(({ hash }) => !ids.has(hash))
+        this.pushTransactions(newData)
+        this.getTransactions(address)
+      }
+    },
     fromNow,
     isAddress(address) {
       return address.toLowerCase() === this.$route.params.id.toLowerCase()

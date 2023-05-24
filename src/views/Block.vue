@@ -106,7 +106,8 @@ export default {
     return {
       detail: null,
       timeStamp: null,
-      loading: true
+      loading: true,
+      latest: null
     }
   },
   computed: {
@@ -142,7 +143,17 @@ export default {
   },
   methods: {
     fromNow,
-    viewNextBlock() {
+    async viewNextBlock() {
+      console.log(this.detail.number, this.latest);
+      if (this.detail.number >= this.latest) {
+        this.$toast.open({
+          message: `${this.detail.number} is last block!`,
+          type: 'info'
+        })
+        const latest = await web3.eth.getBlock('latest')
+        this.latest = latest.number
+        return
+      }
       const block = this.detail.number + 1
       this.$router.push({ name: 'block', params: { id: block } })
     },
@@ -171,6 +182,8 @@ export default {
       return web3.utils.fromWei(wei.toString(), 'gwei')
     },
     async getDetailBlock(num) {
+      const latest = await web3.eth.getBlock('latest')
+      this.latest = latest.number
       try {
         this.loading = true
         const result = await getModel('block', { id: num })
