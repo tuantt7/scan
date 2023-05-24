@@ -17,9 +17,9 @@
           <small class="ml-10">{{ ETHbalance }}</small>
         </el-tooltip>
       </div>
-      <div class="info card">
+      <div v-if="firstTransaction" class="info card">
         <strong>More Info</strong>
-        <p>Last transaction sent:</p>
+        <p v-if="transactions.length">Last transaction sent:</p>
         <div class="txn">
           <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="link">
             {{ transactions[0].hash }}
@@ -30,11 +30,11 @@
         </div>
         <p>First transaction sent:</p>
         <div class="txn">
-          <a v-if="firstTransactions" :href="`/transaction/${firstTransactions.hash}`" class="link">
-            {{ firstTransactions.hash }}
+          <a v-if="firstTransaction" :href="`/transaction/${firstTransaction.hash}`" class="link">
+            {{ firstTransaction.hash }}
           </a>
-          <p v-if="firstTransactions">
-            {{ timeFrom(firstTransactions.timeStamp) }}
+          <p v-if="firstTransaction">
+            {{ timeFrom(firstTransaction.timeStamp) }}
           </p>
         </div>
       </div>
@@ -147,14 +147,14 @@ export default {
       endblock: 99999999,
       loading: true,
       addressType: null,
-      firstTransactions: null
+      firstTransaction: null
     }
   },
   computed: {
     ...mapState(useAddressStore, ['dataPage', 'transactions', 'tranLength', 'offset', 'time']),
     transactionsList() {
-      const reverse = [...this.transactions]
-      return reverse.filter(
+      const transactions = [...this.transactions]
+      return transactions.filter(
         (item, index) => index >= this.dataPage * 50 - 50 && index <= this.dataPage * 50 - 1
       )
     },
@@ -165,16 +165,20 @@ export default {
   watch: {
     '$route.params.id': {
       handler(id) {
-        this.getAccountInformation(id)
-        // this.getTotalTransactions(id)
-        this.getFirstTransactions(id)
         this.getTransactions(id)
+        this.getAccount(id)
       },
       deep: true,
       immediate: true
     }
   },
   methods: {
+    async getAccount(address) {
+      const result = await getApi('account', { address })
+      this.balance = result.data.balance
+      this.firstTransaction = result.data.firstTransaction
+      this.addressType = result.data.type
+    },
     async getTransactions(address) {
       const params = {
         address,
@@ -224,59 +228,6 @@ export default {
     TxnFree(gas = 1, gasPrice = 1) {
       const price = web3.utils.fromWei(gas, 'gwei') * web3.utils.fromWei(gasPrice, 'gwei')
       return price.toString().slice(0, 10)
-    },
-    async getFirstTransactions(address) {
-      const params = {
-        module: 'account',
-        action: 'txlist',
-        address,
-        startblock: 0,
-        endblock: this.endblock,
-        page: 1,
-        offset: 1,
-        sort: 'asc',
-        apikey: sepoliaKey
-      }
-      const result = await getModel('api', params)
-      this.firstTransactions = result.data.result[0]
-    },
-    async getAccountInformation(address) {
-      const addressCode = await web3.eth.getCode(this.$route.params.id)
-      this.addressType = addressCode === '0x' ? 'Address ' : 'Contract '
-      const result = await web3.eth.getBalance(address)
-      this.balance = web3.utils.fromWei(result, 'ether')
-    },
-    async getTotalTransactions(address) {
-      const params = {
-        module: 'account',
-        action: 'txlist',
-        address,
-        startblock: 0,
-        endblock: this.endblock,
-        page: this.page,
-        offset: this.offset,
-        sort: 'desc',
-        apikey: sepoliaKey
-      }
-      const result1 = await getModel('api', params)
-      this.loading = false
-
-      if (result1.data.result.length > 1 && this.transactions.length < 100000) {
-        setTimeout(() => {
-          this.endblock = result1.data.result[result1.data.result.length - 1].blockNumber
-          const ids = new Set(this.transactions.map(({ hash }) => hash))
-          const newData = result1.data.result.filter(({ hash }) => !ids.has(hash))
-          this.pushTransactions(newData)
-          this.getTotalTransactions(address)
-          this.setTime()
-        }, 250)
-      } else {
-        // const ids = new Set(this.transactions.map(({ hash }) => hash))
-        // const selectedRows = result1.data.result.filter(({ hash }) => !ids.has(hash))
-        // console.log(selectedRows)
-        // // this.setTransactions(transactionList)
-        // this.pushTransactions(result1.data.result)
-      }
     }
   }
 }
