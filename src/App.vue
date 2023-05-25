@@ -59,6 +59,7 @@ export default {
       const isAddress = web3.utils.isAddress(str)
       const isHash = /^0x([A-Fa-f0-9]{64})$/.test(str)
       const isBlock = this.isNumeric(str)
+      console.log(isAddress);
       if (isAddress) {
         this.message('an address')
         try {
