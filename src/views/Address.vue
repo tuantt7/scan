@@ -166,6 +166,8 @@ export default {
   watch: {
     '$route.params.id': {
       handler(id) {
+        this.setTransactions([])
+        this.endblock = 99999999
         this.getAccount(id)
         this.getTransactions(id)
       },
