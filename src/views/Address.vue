@@ -231,7 +231,6 @@ export default {
       return price.toString().slice(0, 10)
     },
     txnMethod(id, functionName) {
-      console.log(functionName)
       if (id === '0x') return 'Transfer'
       const index = functionName.indexOf('(')
       return index > -1 ? functionName.slice(0, index) : id
