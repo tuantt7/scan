@@ -316,7 +316,7 @@ export default {
 
     async getDetailTran(hash) {
       try {
-        const result = await getModel('transaction', { id: hash })
+        const result = await getModel('transaction', { hash })
         this.status = result.data.receipt.status
         this.detail = result.data.response
         this.detail2 = result.data.receipt

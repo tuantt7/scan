@@ -88,7 +88,7 @@ export default {
     },
     async getDetail(num) {
       try {
-        const result = await getModel('block', { id: num })
+        const result = await getModel('block', { number: num })
         this.detail = Object.assign({}, result.data)
         this.timeStamp = `${this.fromNow(this.detail.timestamp)} (${moment
           .unix(this.detail.timestamp)

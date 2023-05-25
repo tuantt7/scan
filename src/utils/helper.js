@@ -59,3 +59,7 @@ export const fromNow = function (timeStamp) {
 
   return moment(moment.unix(timeStamp)).fromNow()
 }
+
+export const isNumeric = (str) => {
+  return /^-?\d+$/.test(str)
+}

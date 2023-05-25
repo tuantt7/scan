@@ -38,16 +38,18 @@
         <!-- <span v-if="detail?.transactions?.length" class="link" @click="gotoTxnBlock()"
           >{{ formatNumber(detail.transactions?.length) }} transactions</span
         > -->
-        <a :href="`/txn-block/${$route.params.id}`">
+        <a v-if="detail.transactions?.length" :href="`/txn-block/${$route.params.id}`">
           {{ formatNumber(detail.transactions?.length) }} transactions
         </a>
+        <span v-else>0 transaction</span>
       </div>
 
       <div class="row">
         <span class="second">Withdrawals:</span>
-        <a :href="`/withdrawal/${detail?.number}`">
-          {{ formatNumber(detail.withdrawals?.length) }} withdrawals
+        <a v-if="detail.withdrawals?.length" :href="`/withdrawal/${detail?.number}`">
+          {{ formatNumber(detail.withdrawals?.length || 0) }} withdrawals
         </a>
+        <span v-else>0 withdrawal</span>
       </div>
 
       <div v-if="detail?.miner" class="row">
@@ -60,22 +62,22 @@
 
       <div class="row">
         <span class="second">Total Difficulty:</span>
-        <span v-if="detail?.totalDifficulty">{{ formatNumber(detail.totalDifficulty) }}</span>
+        <span v-if="detail?.number">{{ formatNumber(detail.totalDifficulty || 0) }}</span>
       </div>
 
       <div class="row">
         <span class="second">Size:</span>
-        <span v-if="detail?.size">{{ formatNumber(detail.size) }} bytes</span>
+        <span v-if="detail?.number">{{ formatNumber(detail.size || 0) }} bytes</span>
       </div>
 
       <div class="row">
         <span class="second">Gas Used:</span>
-        <span v-if="detail?.gasUsed">{{ formatNumber(detail.gasUsed) }} ({{ percent }})</span>
+        <span v-if="detail?.number">{{ formatNumber(detail.gasUsed || 0) }} ({{ percent }})</span>
       </div>
 
       <div class="row">
         <span class="second"> Gas Limit:</span>
-        <span v-if="detail?.gasLimit">{{ formatNumber(detail.gasLimit) }}</span>
+        <span v-if="detail?.number">{{ formatNumber(detail.gasLimit || 0) }}</span>
       </div>
 
       <div class="row">
@@ -144,7 +146,6 @@ export default {
   methods: {
     fromNow,
     async viewNextBlock() {
-      console.log(this.detail.number, this.latest);
       if (this.detail.number >= this.latest) {
         this.$toast.open({
           message: `${this.detail.number} is last block!`,
@@ -186,7 +187,7 @@ export default {
       this.latest = latest.number
       try {
         this.loading = true
-        const result = await getModel('block', { id: num })
+        const result = await getModel('block', { number: num })
         this.detail = Object.assign({}, result.data)
         this.timeStamp = `${this.fromNow(this.detail.timestamp)} (${moment
           .unix(this.detail.timestamp)
