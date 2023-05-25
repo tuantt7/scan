@@ -52,7 +52,7 @@ export default {
 
       if (this.timeout) clearTimeout(this.timeout)
       this.timeout = setTimeout(() => {
-        this.getSomeThings(str, isAddress, isHash, isBlock)
+        this.getSomeThings(str)
       }, 1000)
     },
     async getSomeThings(str) {
