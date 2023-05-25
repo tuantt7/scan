@@ -19,6 +19,10 @@
               Fail</el-tag
             >
             <span v-else-if="!status && !detail?.blockNumber" v-loading="true">Pending</span>
+
+            <span v-if="executionReverted" class="error-msg ml-10">
+              Fail with error: {{ executionReverted }}
+              </span>
           </div>
           <div class="row">
             <span class="second">Block:</span>
@@ -216,7 +220,8 @@ export default {
       activeTab: 'originnal',
       logs: [],
       view: 'overview',
-      logsLoading: null
+      logsLoading: null,
+      executionReverted: ''
     }
   },
   computed: {
@@ -254,6 +259,11 @@ export default {
     }
   },
   methods: {
+    async getRevertReason() {
+      const hash = this.$route.params.id
+      const result = await getModel('revert', { hash })
+      this.executionReverted = result.data.message
+    },
     isNumeric(str) {
       if (typeof str != 'string') return false
       return !isNaN(str) && !isNaN(parseFloat(str))
@@ -310,6 +320,7 @@ export default {
         this.status = result.data.receipt.status
         this.detail = result.data.response
         this.detail2 = result.data.receipt
+        if (!result.data.receipt.status) this.getRevertReason()
         this.timeStamp = `${this.fromNow(result.data.response.timestamp)} (${moment
           .unix(result.data.response.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`
@@ -515,5 +526,9 @@ textarea {
 
 .table-decode {
   overflow: auto;
+}
+
+.error-msg {
+  color: #f56c6c;
 }
 </style>

@@ -54,9 +54,10 @@
           <!-- <strong class="hash">Txn Fee</strong> -->
         </div>
         <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
+          <el-icon v-if="tran.isError == '1'" class="warning"><Warning /></el-icon>
           <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran?.hash }}</a>
           <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
-          <span class="hash">{{ tran.methodId }}</span>
+          <span class="hash">{{ txnMethod(tran.methodId, tran.functionName) }}</span>
 
           <span class="hash">
             <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
@@ -165,8 +166,8 @@ export default {
   watch: {
     '$route.params.id': {
       handler(id) {
-        this.getTransactions(id)
         this.getAccount(id)
+        this.getTransactions(id)
       },
       deep: true,
       immediate: true
@@ -228,6 +229,12 @@ export default {
     TxnFree(gas = 1, gasPrice = 1) {
       const price = web3.utils.fromWei(gas, 'gwei') * web3.utils.fromWei(gasPrice, 'gwei')
       return price.toString().slice(0, 10)
+    },
+    txnMethod(id, functionName) {
+      console.log(functionName)
+      if (id === '0x') return 'Transfer'
+      const index = functionName.indexOf('(')
+      return index > -1 ? functionName.slice(0, index) : id
     }
   }
 }
@@ -333,6 +340,11 @@ export default {
   overflow: hidden;
   width: unset;
   text-overflow: ellipsis;
+}
+
+.warning {
+  color: red;
+  margin-right: 3px;
 }
 
 @media only screen and (max-width: 992px) {
