@@ -4,9 +4,11 @@
       <el-menu-item index="/">Home</el-menu-item>
       <div class="type">
         <el-input
+          ref="search"
           v-model="search"
           placeholder="Search by Address / Txn Hash / Block"
           class="search"
+          @keyup="typing"
           @keyup.enter="onEnter"
         >
           <template #prefix>
@@ -24,7 +26,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
-import { getModel } from '@/abiApi.js'
+import { getModel } from '@/mainApi.js'
 import { isNumeric } from '@/utils/helper'
 
 export default {
@@ -33,7 +35,8 @@ export default {
       activeIndex: '/',
       value: 'sepolia',
       search: '',
-      timeout: 2000
+      timeout: 2000,
+      focus: false
     }
   },
   mounted() {
@@ -46,6 +49,30 @@ export default {
     }
   },
   methods: {
+    setPosition(pos) {
+      const input = this.$refs.search.input
+      if (input.setSelectionRange) {
+        input.focus()
+        input.setSelectionRange(pos, pos)
+      } else if (input.createTextRange) {
+        var range = input.createTextRange()
+        range.collapse(true)
+        range.moveEnd('character', pos)
+        range.moveStart('character', pos)
+        range.select()
+      }
+    },
+    typing(val) {
+      const input = this.$refs.search.input
+      if (val.code === 'Space') {
+        const index = val.target.selectionStart
+        this.search = this.search.slice(0, index) + ' ' + this.search.slice(index + Math.abs(0))
+        input.blur()
+        this.$nextTick(() => {
+          this.setPosition(index + 1)
+        })
+      }
+    },
     isNumeric,
     async onEnter(val) {
       const str = val.target.value.trim()
