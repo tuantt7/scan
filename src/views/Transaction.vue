@@ -197,7 +197,7 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { postModel, getModel } from '@/abiApi.js'
+import { postModel, getModel } from '@/mainApi.js'
 import { fromNow } from '@/utils/helper.js'
 
 const network = localStorage.getItem('net')

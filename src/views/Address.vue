@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <el-skeleton v-if="!addressType" :rows="1" animated />
+    <el-skeleton v-if="!addressType" :rows="2" animated />
     <div class="card -head" v-else>
       <div class="card-body address-info">
         <strong>{{ addressType }}</strong>
@@ -8,26 +8,17 @@
         <Copy :text="$route.params.id" class="ml-10" />
       </div>
     </div>
-    <el-skeleton v-if="!balance" :rows="2" animated />
+    <el-skeleton v-if="!balance" :rows="4" animated />
     <div v-else class="over-view">
       <div class="balance card">
         <strong>Overview</strong>
         <p>ETH Balance</p>
-        <el-tooltip :content="balance + ' ETH'" placement="top">
+        <el-tooltip :show-after="50" :hide-after="0" :content="balance + ' ETH'" placement="top">
           <small class="ml-10">{{ ETHbalance }}</small>
         </el-tooltip>
       </div>
       <div v-if="firstTransaction" class="info card">
         <strong>More Info</strong>
-        <p v-if="transactions.length">Last transaction sent:</p>
-        <div class="txn">
-          <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="link">
-            {{ transactions[0].hash }}
-          </a>
-          <p v-if="transactions.length">
-            {{ timeFrom(transactions[0].timeStamp) }}
-          </p>
-        </div>
         <p>First transaction sent:</p>
         <div class="txn">
           <a v-if="firstTransaction" :href="`/transaction/${firstTransaction.hash}`" class="link">
@@ -37,95 +28,181 @@
             {{ timeFrom(firstTransaction.timeStamp) }}
           </p>
         </div>
+        <p v-if="transactions.length">Last transaction sent:</p>
+        <div class="txn">
+          <a v-if="transactions.length" :href="`/transaction/${transactions[0].hash}`" class="link">
+            {{ transactions[0].hash }}
+          </a>
+          <p v-if="transactions.length">
+            {{ timeFrom(transactions[0].timeStamp) }}
+          </p>
+        </div>
       </div>
     </div>
     <el-skeleton v-if="loading" :rows="6" animated />
-    <div v-else class="list">
-      <div class="transaction-list card">
-        Last {{ transactions.length }} transactions
-        <div class="transaction">
-          <strong class="hash">Txn Hash</strong>
-          <strong class="hash">Method</strong>
-          <strong class="hash">Block</strong>
-          <strong class="hash">Age</strong>
-          <strong class="hashF">From</strong>
-          <strong class="hashL">To</strong>
-          <strong class="hash">Value</strong>
-          <!-- <strong class="hash">Txn Fee</strong> -->
-        </div>
-        <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
-          <el-icon v-if="tran.isError == '1'" class="warning"><Warning /></el-icon>
-          <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran?.hash }}</a>
-          <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
-          <span class="hash">{{ txnMethod(tran.methodId, tran.functionName) }}</span>
+    <el-tabs v-else v-model="view" class="view-tabs">
+      <el-tab-pane label="Transactions" name="transaction">
+        <div class="list">
+          <div class="transaction-list card">
+            Last {{ transactions.length }} transactions
+            <div class="transaction">
+              <strong class="hash">Txn Hash</strong>
+              <strong class="hash">Method</strong>
+              <strong class="hashS">Block</strong>
+              <strong class="hashA">Age</strong>
+              <strong class="hashF">From</strong>
+              <strong class="hashL">To</strong>
+              <strong class="hash">Value</strong>
+              <!-- <strong class="hash">Txn Fee</strong> -->
+            </div>
+            <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
+              <div class="hash">
+                <el-icon v-if="tran.isError == '1'" class="warning"><Warning /></el-icon>
+                <a :href="`/transaction/${tran.hash}`">{{ tran?.hash }}</a>
+              </div>
+              <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
+              <span class="hash">{{ txnMethod(tran.methodId, tran.functionName) }}</span>
 
-          <span class="hash">
-            <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
+              <span class="hashS">
+                <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
               {{ tran.blockNumber }}
             </span> -->
-            <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran?.blockNumber }}</a>
-          </span>
+                <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran?.blockNumber }}</a>
+              </span>
 
-          <span class="hash">
-            <el-tooltip :content="timeFrom(tran.timeStamp)" placement="top">
-              <p>{{ fromNow(tran.timeStamp) }}</p>
-            </el-tooltip>
-          </span>
+              <span class="hashA">
+                <el-tooltip
+                  :show-after="50"
+                  :hide-after="0"
+                  :content="timeFrom(tran.timeStamp)"
+                  placement="top"
+                >
+                  <p>{{ fromNow(tran.timeStamp) }}</p>
+                </el-tooltip>
+              </span>
 
-          <div v-if="isAddress(tran.from)" class="hashF">
-            <el-tooltip :content="tran.from" placement="top">
-              <span>{{ address(tran.from) }}</span>
-            </el-tooltip>
-            <Copy class="copy" :text="tran.from" />
-            <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success">In</el-tag>
-            <el-tag v-else type="warning">Out</el-tag>
+              <div v-if="isAddress(tran.from)" class="hashF">
+                <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
+                  <span>{{ address(tran.from) }}</span>
+                </el-tooltip>
+                <Copy class="copy" :text="tran.from" />
+                <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                  >In</el-tag
+                >
+                <el-tag v-else type="warning">Out</el-tag>
+              </div>
+              <div v-else class="hashF">
+                <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
+                  <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
+                </el-tooltip>
+                <Copy class="copy" :text="tran.from" />
+                <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                  >In</el-tag
+                >
+                <el-tag v-else type="warning">Out</el-tag>
+              </div>
+
+              <div v-if="isAddress(tran.to) && tran.to" class="hashL">
+                <el-tooltip :show-after="50" :hide-after="0" :content="tran.to" placement="top">
+                  <span>{{ address(tran.to) }}</span>
+                </el-tooltip>
+                <Copy class="copy" :text="tran.to" />
+              </div>
+              <div v-else class="hashL">
+                <el-tooltip
+                  :show-after="50"
+                  :hide-after="0"
+                  v-if="tran.to"
+                  :content="tran.to"
+                  placement="top"
+                >
+                  <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
+                </el-tooltip>
+                <Copy v-if="tran.to" :text="tran.to" />
+
+                <el-tooltip
+                  :show-after="50"
+                  :hide-after="0"
+                  v-if="tran.contractAddress"
+                  placement="top"
+                >
+                  <template #content> New contract<br />{{ tran.contractAddress }} </template>
+                  <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
+                </el-tooltip>
+                <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
+              </div>
+
+              <span class="hash">
+                <el-tooltip
+                  :show-after="50"
+                  :hide-after="100"
+                  v-if="tran.value"
+                  :content="toETH(tran.value) + ' ETH'"
+                  placement="top"
+                >
+                  {{ value(tran.value) }}
+                </el-tooltip>
+              </span>
+              <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
+            </div>
+            <el-pagination
+              :current-page="dataPage"
+              @current-change="changePage"
+              background
+              layout="total, prev, pager, next, jumper"
+              :total="transactions.length"
+              :page-size="50"
+              class="my-10"
+            />
           </div>
-          <div v-else class="hashF">
-            <el-tooltip :content="tran.from" placement="top">
-              <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
-            </el-tooltip>
-            <Copy class="copy" :text="tran.from" />
-            <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success">In</el-tag>
-            <el-tag v-else type="warning">Out</el-tag>
-          </div>
-
-          <div v-if="isAddress(tran.to) && tran.to" class="hashL">
-            <el-tooltip :content="tran.to" placement="top">
-              <span>{{ address(tran.to) }}</span>
-            </el-tooltip>
-            <Copy class="copy" :text="tran.to" />
-          </div>
-          <div v-else class="hashL">
-            <el-tooltip v-if="tran.to" :content="tran.to" placement="top">
-              <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
-            </el-tooltip>
-            <Copy v-if="tran.to" :text="tran.to" />
-
-            <el-tooltip v-if="tran.contractAddress" placement="top">
-              <template #content> New contract<br />{{ tran.contractAddress }} </template>
-              <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
-            </el-tooltip>
-            <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
-          </div>
-
-          <span class="hash">
-            <el-tooltip v-if="tran.value" :content="toETH(tran.value) + ' ETH'" placement="top">
-              {{ value(tran.value) }}
-            </el-tooltip>
-          </span>
-          <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
         </div>
-        <el-pagination
-          :current-page="dataPage"
-          @current-change="changePage"
-          background
-          layout="prev, pager, next"
-          :total="transactions.length"
-          :page-size="50"
-          class="my-10"
-        />
-      </div>
-    </div>
+      </el-tab-pane>
+      <el-tab-pane label="Produced Blocks" name="produced">
+        <div v-if="blocks.length" class="list">
+          <div v-loading="loadingBlock" class="transaction-list card">
+            {{ blocks.length }} blocks of {{ totalblocks }}
+            <div class="transaction">
+              <strong class="hashF">Block</strong>
+              <strong class="hashF">Reward</strong>
+              <strong class="hashF">Age</strong>
+              <!-- <strong class="hash">Txn Fee</strong> -->
+            </div>
+            <div class="transaction" v-for="item in blocks" :key="item.timeStamp">
+              <span class="hashF">
+                <a :href="`/block/${item.blockNumber}`">{{ item?.blockNumber }}</a>
+              </span>
+
+              <span class="hashF"> {{ toETH(item.blockReward) }} ETH </span>
+
+              <!-- <span class="hashF">
+                {{ fromNow(item.timeStamp) }}
+              </span> -->
+              <el-tooltip
+                class="hashF"
+                :show-after="50"
+                :hide-after="0"
+                :content="timeFrom(item.timeStamp)"
+                placement="top"
+              >
+                <p>{{ fromNow(item.timeStamp) }}</p>
+              </el-tooltip>
+
+              <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
+            </div>
+            <el-pagination
+              :current-page="blockPage"
+              @current-change="getMoreMined"
+              background
+              layout="total, prev, pager, next, jumper"
+              :total="totalblocks"
+              :page-size="50"
+              class="my-10"
+            />
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+    <el-backtop :visibility-height="800" />
   </div>
 </template>
 <script>
@@ -134,9 +211,7 @@ import { fromNow } from '@/utils/helper.js'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '@/stores/address.js'
-import { getModel } from '@/api.js'
-import { getModel as getApi } from '@/abiApi.js'
-const sepoliaKey = import.meta.env.VITE_SEPOLIA_KEY
+import { getModel } from '@/mainApi.js'
 export default {
   name: 'HomePage',
   data() {
@@ -148,7 +223,12 @@ export default {
       endblock: 99999999,
       loading: true,
       addressType: null,
-      firstTransaction: null
+      firstTransaction: null,
+      view: 'transaction',
+      blocks: [],
+      blockPage: 1,
+      totalblocks: 0,
+      loadingBlock: true
     }
   },
   computed: {
@@ -165,19 +245,49 @@ export default {
   },
   watch: {
     '$route.params.id': {
-      handler(id) {
+      handler(address) {
+        this.blockPage = 1
         this.setTransactions([])
         this.endblock = 99999999
-        this.getAccount(id)
-        this.getTransactions(id)
+        this.getAccount(address)
+        this.getTransactions(address)
+        this.getMined(address)
+        this.getTotalMinedBlocks(address)
       },
       deep: true,
       immediate: true
     }
   },
   methods: {
+    getMoreMined(value) {
+      this.blockPage = value
+      this.getMined(this.$route.params.id)
+    },
+    async getTotalMinedBlocks(address) {
+      const result = await getModel('total-mined', { address })
+      this.totalblocks = result.data.total
+    },
+    async getMined(address) {
+      try {
+        this.loadingBlock = true
+        const result = await getModel('mined', { address, page: this.blockPage })
+        this.blocks = result.data
+      } catch (error) {
+        this.errorMessage(error)
+      } finally {
+        this.loadingBlock = false
+      }
+    },
+    errorMessage(error) {
+      const { message } = error.response.data
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000
+      })
+    },
     async getAccount(address) {
-      const result = await getApi('account', { address })
+      const result = await getModel('account', { address })
       this.balance = result.data.balance
       this.firstTransaction = result.data.firstTransaction
       this.addressType = result.data.type
@@ -187,7 +297,7 @@ export default {
         address,
         endblock: this.endblock
       }
-      const result = await getApi('transactions', { ...params })
+      const result = await getModel('transactions', { ...params })
       this.loading = false
       if (result.data.length > 1 && this.transactions.length < 100000) {
         this.endblock = result.data[result.data.length - 1].blockNumber
@@ -246,6 +356,7 @@ export default {
   margin: auto;
   margin-top: 20px;
   overflow: hidden;
+  padding: 0 15px;
 }
 
 .over-view {
@@ -265,6 +376,15 @@ export default {
 
 .hash {
   width: 150px;
+  min-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.hashS {
+  width: 80px;
+  min-width: 80px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -277,6 +397,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin: 0 10px;
 }
 
 .hashF {
@@ -285,7 +406,13 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 20px;
+  padding-right: 30px;
+}
+
+.hashA {
+  width: 180px;
+  min-width: 180px;
+  text-align: center;
 }
 
 .small {
@@ -298,8 +425,7 @@ export default {
 }
 
 .transaction-list {
-  margin-top: 20px;
-  min-width: 1000px;
+  min-width: 1168px;
 }
 
 .list {
@@ -346,6 +472,26 @@ export default {
 .warning {
   color: red;
   margin-right: 3px;
+}
+
+.el-tabs {
+  margin-top: 20px;
+}
+
+.el-tabs ::v-deep(.el-tabs__nav-wrap::after) {
+  background-color: #fff;
+}
+
+.el-tabs ::v-deep(.el-tabs__item.is-active) {
+  background-color: #409eff;
+  color: #ffffff;
+}
+
+.el-tabs ::v-deep(.el-tabs__item.is-top:last-child),
+.el-tabs ::v-deep(.el-tabs__item.is-top:nth-child(2)) {
+  text-align: center;
+  padding: 0 20px;
+  border-radius: 4px;
 }
 
 @media only screen and (max-width: 992px) {

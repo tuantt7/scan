@@ -99,7 +99,7 @@
 <script>
 import web3 from '@/utils/web3'
 import { fromNow } from '@/utils/helper.js'
-import { getModel } from '@/abiApi.js'
+import { getModel } from '@/mainApi.js'
 import moment from 'moment'
 
 export default {
@@ -151,8 +151,7 @@ export default {
           message: `${this.detail.number} is last block!`,
           type: 'info'
         })
-        const latest = await web3.eth.getBlock('latest')
-        this.latest = latest.number
+       this.getDetailBlock(this.$route.params.id, false)
         return
       }
       const block = this.detail.number + 1
@@ -182,13 +181,12 @@ export default {
     toGwei(wei = 0) {
       return web3.utils.fromWei(wei.toString(), 'gwei')
     },
-    async getDetailBlock(num) {
-      const latest = await web3.eth.getBlock('latest')
-      this.latest = latest.number
+    async getDetailBlock(num, loading = true) {
       try {
-        this.loading = true
+        this.loading = loading
         const result = await getModel('block', { number: num })
         this.detail = Object.assign({}, result.data)
+        this.latest = this.detail.latest
         this.timeStamp = `${this.fromNow(this.detail.timestamp)} (${moment
           .unix(this.detail.timestamp)
           .format('DD/MM/YYYY HH:mm:ss')})`

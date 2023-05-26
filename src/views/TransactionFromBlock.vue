@@ -1,7 +1,6 @@
 <template>
-  <div class="home-page">
-    <el-skeleton v-if="loading" :rows="6" animated />
-    <div v-else class="list">
+  <div v-loading="loading" class="home-page">
+    <div class="list">
       <div class="transaction-list">
         <span>{{ total }} transactions from block {{ $route.params.id }}</span>
         <div class="transaction">
@@ -61,7 +60,7 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '@/abiApi.js'
+import { getModel } from '@/mainApi.js'
 import { fromNow } from '@/utils/helper.js'
 export default {
   name: 'HomePage',
@@ -100,7 +99,7 @@ export default {
     },
     async getTransactions(id) {
       this.loading = true
-      const result1 = await getModel('txsBlock', { id, page: this.page })
+      const result1 = await getModel('txn-block', { id, page: this.page })
       this.transactionsDetail = result1.data.transactions
       this.total = result1.data.total
       this.loading = false
