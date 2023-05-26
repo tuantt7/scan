@@ -6,7 +6,7 @@ const apiKey = import.meta.env.VITE_INFURA_API_KEY
 // const privateKey = import.meta.env.VITE_SIGNER_PRIVATE_KEY
 
 if (!localStorage.getItem('net')) {
-  localStorage.setItem('net', 'sepolia')
+  localStorage.setItem('net', 'mainnet')
 }
 const net = localStorage.getItem('net')
 const network = net === sepoliaNetwork ? sepoliaNetwork : mainnetNetwork
