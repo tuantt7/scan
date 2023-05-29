@@ -55,97 +55,103 @@
               <strong class="hash">Value</strong>
               <!-- <strong class="hash">Txn Fee</strong> -->
             </div>
-            <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
-              <div class="hash">
-                <el-icon v-if="tran.isError == '1'" class="warning"><Warning /></el-icon>
-                <a :href="`/transaction/${tran.hash}`">{{ tran?.hash }}</a>
-              </div>
-              <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
-              <span class="hash">{{ txnMethod(tran.methodId, tran.functionName) }}</span>
+            <template v-if="transactionsList.length">
+              <div class="transaction" v-for="tran in transactionsList" :key="tran.timeStamp">
+                <div class="hash">
+                  <el-icon v-if="tran.isError == '1'" class="warning"><Warning /></el-icon>
+                  <a :href="`/transaction/${tran.hash}`">{{ tran?.hash }}</a>
+                </div>
+                <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
+                <span class="hash">{{ txnMethod(tran.methodId, tran.functionName) }}</span>
 
-              <span class="hashS">
-                <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
+                <span class="hashS">
+                  <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
               {{ tran.blockNumber }}
             </span> -->
-                <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran?.blockNumber }}</a>
-              </span>
+                  <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran?.blockNumber }}</a>
+                </span>
 
-              <span class="hashA">
-                <el-tooltip
-                  :show-after="50"
-                  :hide-after="0"
-                  :content="timeFrom(tran.timeStamp)"
-                  placement="top"
-                >
-                  <p>{{ fromNow(tran.timeStamp) }}</p>
-                </el-tooltip>
-              </span>
+                <span class="hashA">
+                  <el-tooltip
+                    :show-after="50"
+                    :hide-after="0"
+                    :content="timeFrom(tran.timeStamp)"
+                    placement="top"
+                  >
+                    <p>{{ fromNow(tran.timeStamp) }}</p>
+                  </el-tooltip>
+                </span>
 
-              <div v-if="isAddress(tran.from)" class="hashF">
-                <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
-                  <span>{{ address(tran.from) }}</span>
-                </el-tooltip>
-                <Copy class="copy" :text="tran.from" />
-                <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
-                  >In</el-tag
-                >
-                <el-tag v-else type="warning">Out</el-tag>
+                <div v-if="isAddress(tran.from)" class="hashF">
+                  <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
+                    <span>{{ address(tran.from) }}</span>
+                  </el-tooltip>
+                  <Copy class="copy" :text="tran.from" />
+                  <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                    >In</el-tag
+                  >
+                  <el-tag v-else type="warning">Out</el-tag>
+                </div>
+                <div v-else class="hashF">
+                  <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
+                    <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
+                  </el-tooltip>
+                  <Copy class="copy" :text="tran.from" />
+                  <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                    >In</el-tag
+                  >
+                  <el-tag v-else type="warning">Out</el-tag>
+                </div>
+
+                <div v-if="isAddress(tran.to) && tran.to" class="hashL">
+                  <el-tooltip :show-after="50" :hide-after="0" :content="tran.to" placement="top">
+                    <span>{{ address(tran.to) }}</span>
+                  </el-tooltip>
+                  <Copy class="copy" :text="tran.to" />
+                </div>
+                <div v-else class="hashL">
+                  <el-tooltip
+                    :show-after="50"
+                    :hide-after="0"
+                    v-if="tran.to"
+                    :content="tran.to"
+                    placement="top"
+                  >
+                    <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
+                  </el-tooltip>
+                  <Copy v-if="tran.to" :text="tran.to" />
+
+                  <el-tooltip
+                    :show-after="50"
+                    :hide-after="0"
+                    v-if="tran.contractAddress"
+                    placement="top"
+                  >
+                    <template #content> New contract<br />{{ tran.contractAddress }} </template>
+                    <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
+                  </el-tooltip>
+                  <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
+                </div>
+
+                <span class="hash">
+                  <el-tooltip
+                    :show-after="50"
+                    :hide-after="100"
+                    v-if="tran.value"
+                    :content="toETH(tran.value) + ' ETH'"
+                    placement="top"
+                  >
+                    {{ value(tran.value) }}
+                  </el-tooltip>
+                </span>
+                <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
               </div>
-              <div v-else class="hashF">
-                <el-tooltip :show-after="50" :hide-after="0" :content="tran.from" placement="top">
-                  <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
-                </el-tooltip>
-                <Copy class="copy" :text="tran.from" />
-                <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
-                  >In</el-tag
-                >
-                <el-tag v-else type="warning">Out</el-tag>
-              </div>
-
-              <div v-if="isAddress(tran.to) && tran.to" class="hashL">
-                <el-tooltip :show-after="50" :hide-after="0" :content="tran.to" placement="top">
-                  <span>{{ address(tran.to) }}</span>
-                </el-tooltip>
-                <Copy class="copy" :text="tran.to" />
-              </div>
-              <div v-else class="hashL">
-                <el-tooltip
-                  :show-after="50"
-                  :hide-after="0"
-                  v-if="tran.to"
-                  :content="tran.to"
-                  placement="top"
-                >
-                  <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
-                </el-tooltip>
-                <Copy v-if="tran.to" :text="tran.to" />
-
-                <el-tooltip
-                  :show-after="50"
-                  :hide-after="0"
-                  v-if="tran.contractAddress"
-                  placement="top"
-                >
-                  <template #content> New contract<br />{{ tran.contractAddress }} </template>
-                  <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
-                </el-tooltip>
-                <Copy v-if="tran.contractAddress" :text="tran.contractAddress" />
-              </div>
-
-              <span class="hash">
-                <el-tooltip
-                  :show-after="50"
-                  :hide-after="100"
-                  v-if="tran.value"
-                  :content="toETH(tran.value) + ' ETH'"
-                  placement="top"
-                >
-                  {{ value(tran.value) }}
-                </el-tooltip>
-              </span>
-              <!-- <span class="hash">{{ TxnFree(tran.gasUsed, tran.gasPrice) }}</span> -->
-            </div>
+            </template>
+            <template v-else>
+              <span class="no-data">no data</span>
+            </template>
             <el-pagination
+              v-if="transactionsList.length"
               :current-page="dataPage"
               @current-change="changePage"
               background
@@ -200,6 +206,7 @@
             />
           </div>
         </div>
+        <span v-else class="no-data">no data</span>
       </el-tab-pane>
     </el-tabs>
     <el-backtop :visibility-height="800" />

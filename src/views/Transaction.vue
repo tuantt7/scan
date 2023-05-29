@@ -4,7 +4,7 @@
     <el-skeleton v-if="!detail" :rows="6" animated />
     <el-tabs v-else v-model="view" class="view-tabs">
       <el-tab-pane label="Overview" name="overview">
-        This is a Sepolia Testnet transaction only
+        <span v-if="!isMainnet">This is a Sepolia Testnet transaction only</span>
         <div class="detail card">
           <div class="row">
             <span class="second">Transaction Hash:</span>
@@ -201,6 +201,7 @@ import { postModel, getModel } from '@/mainApi.js'
 import { fromNow } from '@/utils/helper.js'
 
 const network = localStorage.getItem('net')
+const mainnet = import.meta.env.VITE_MAINNET_NETWORK
 
 export default {
   name: 'HomePage',
@@ -225,6 +226,9 @@ export default {
     }
   },
   computed: {
+    isMainnet() {
+      return network === mainnet
+    },
     to() {
       return this.detail?.to || this.detail2?.contractAddress
     },

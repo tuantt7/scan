@@ -36,7 +36,8 @@ export default {
       value: 'sepolia',
       search: '',
       timeout: 2000,
-      focus: false
+      focus: false,
+      isSearch: false
     }
   },
   mounted() {
@@ -76,13 +77,17 @@ export default {
     isNumeric,
     async onEnter(val) {
       const str = val.target.value.trim()
+      if (this.isSearch || !str) return
 
-      if (this.timeout) clearTimeout(this.timeout)
-      this.timeout = setTimeout(() => {
-        this.getSomeThings(str)
-      }, 1000)
+      this.getSomeThings(str)
+    },
+    resetSearch(clearSearch = true) {
+      this.isSearch = false
+      if (!clearSearch) return
+      this.search = ''
     },
     async getSomeThings(str) {
+      this.isSearch = true
       const isAddress = web3.utils.isAddress(str)
       const isHash = /^0x([A-Fa-f0-9]{64})$/.test(str)
       const isBlock = this.isNumeric(str)
@@ -91,7 +96,7 @@ export default {
         try {
           const result = await getModel('account', { address: str })
           if (result.data.type) {
-            this.search = ''
+            this.resetSearch()
             this.$router.push({ name: 'address', params: { id: str } })
             return
           }
@@ -104,8 +109,8 @@ export default {
         try {
           const result = await getModel('transaction', { hash: str })
           if (result.data.response && result.data.receipt) {
+            this.resetSearch()
             this.$router.push({ name: 'transaction', params: { id: str } })
-            this.search = ''
             return
           }
         } catch (error) {
@@ -117,8 +122,8 @@ export default {
         try {
           const result = await getModel('block', { number: str })
           if (result.data.number && result.data.timestamp) {
+            this.resetSearch()
             this.$router.push({ name: 'block', params: { id: str } })
-            this.search = ''
             return
           }
         } catch (error) {
@@ -126,10 +131,11 @@ export default {
         }
       }
       this.$toast.open({
-        message: `I can't find anything`,
+        message: `I can't find anything.`,
         type: 'info',
         duration: 5000
       })
+      this.resetSearch(false)
     },
     errorMessage(error) {
       const { message } = error.response.data
@@ -138,6 +144,7 @@ export default {
         type: 'error',
         duration: 5000
       })
+      this.resetSearch()
     },
     message(message) {
       this.$toast.open({
