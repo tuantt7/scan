@@ -12,39 +12,50 @@
           <strong class="hash">Value</strong>
           <!-- <strong class="hash">Txn Fee</strong> -->
         </div>
-        <div class="transaction" v-for="tran in transactionsDetail" :key="tran.hash">
-          <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
-          <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran.hash }}</a>
-          <span class="hash">
-            <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
+        <template v-if="transactionsDetail.length">
+          <div class="transaction" v-for="tran in transactionsDetail" :key="tran.hash">
+            <!-- <span class="hash link" @click="goToTransaction(tran.hash)">{{ tran.hash }}</span> -->
+            <a :href="`/transaction/${tran.hash}`" class="hash">{{ tran.hash }}</a>
+            <span class="hash">
+              <!-- <span class="link" @click="goToBlock(tran.blockNumber)">
               {{ tran.blockNumber }}
             </span> -->
-            <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran.blockNumber }}</a>
-          </span>
-          <span class="hash">
-            <el-tooltip :content="timeFrom(tran.timestamp)" placement="top">
-              <span>{{ fromNow(tran.timestamp) }}</span>
-            </el-tooltip>
-          </span>
-          <div class="hash">
-            <el-tooltip :content="tran.from" placement="top">
-              <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
-            </el-tooltip>
-            <Copy class="copy" :text="tran.from" />
-          </div>
-          <div class="hash">
-            <el-tooltip v-if="tran.to" :content="tran.to" placement="top">
-              <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
-            </el-tooltip>
-            <Copy v-if="tran.to" class="copy" :text="tran.to" />
-            <el-tooltip v-if="tran.contractAddress" :content="tran.contractAddress" placement="top">
-              <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
-            </el-tooltip>
-            <Copy v-if="tran.contractAddress" class="copy" :text="tran.contractAddress" />
-          </div>
-          <span class="hash">{{ value(tran.value) }}</span>
-        </div>
+              <a :href="`/block/${tran.blockNumber}`" class="hash">{{ tran.blockNumber }}</a>
+            </span>
+            <span class="hash">
+              <el-tooltip :content="timeFrom(tran.timestamp)" placement="top">
+                <span>{{ fromNow(tran.timestamp) }}</span>
+              </el-tooltip>
+            </span>
+            <div class="hash">
+              <el-tooltip :content="tran.from" placement="top">
+                <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
+              </el-tooltip>
+              <Copy class="copy" :text="tran.from" />
+            </div>
+            <div class="hash">
+              <el-tooltip v-if="tran.to" :content="tran.to" placement="top">
+                <a :href="`/address/${tran.to}`" class="text">{{ address(tran.to) }}</a>
+              </el-tooltip>
+              <Copy v-if="tran.to" class="copy" :text="tran.to" />
+              <el-tooltip
+                v-if="tran.contractAddress"
+                :content="tran.contractAddress"
+                placement="top"
+              >
+                <a :href="`/address/${tran.contractAddress}`" class="text">Contract Creation</a>
+              </el-tooltip>
+              <Copy v-if="tran.contractAddress" class="copy" :text="tran.contractAddress" />
+            </div>
+            <span class="hash">{{ value(tran.value) }}</span>
+          </div></template
+        >
+        <template v-else-if="transactionsDetail">
+          <span class="no-data">no data</span>
+        </template>
+
         <el-pagination
+          v-if="transactionsDetail.length"
           :current-page="page"
           @current-change="(val) => (page = val)"
           background
@@ -118,7 +129,7 @@ export default {
     },
     value(value) {
       return web3.utils.fromWei(value, 'ether').toString().slice(0, 10) + ' ETH'
-    },
+    }
   }
 }
 </script>

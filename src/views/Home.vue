@@ -2,9 +2,8 @@
   <div class="home-page">
     <h3 v-if="!isMainnet">Sepolia Testnet Explorer</h3>
     <div class="over-view">
-      <el-skeleton v-if="loading" :rows="6" animated />
-      <div v-else class="card -head">
-        <h4 class="title">Latest Blocks</h4>
+      <div class="card -head">
+        <h4 v-loading="loading" class="title">Latest Blocks</h4>
         <div class="card-body">
           <div v-for="block in blocks" :key="block.number" class="detail">
             <div class="num">
@@ -30,9 +29,8 @@
           </div>
         </div>
       </div>
-      <el-skeleton v-if="loading" :rows="6" animated />
-      <div v-else class="card -head">
-        <h4 class="title">Latest Transactions</h4>
+      <div class="card -head">
+        <h4 v-loading="loadingTxn" class="title">Latest Transactions</h4>
         <div class="card-body">
           <div v-for="tran in transactions" :key="tran" class="detail">
             <div class="icon-block">
@@ -74,6 +72,9 @@ export default {
     },
     isMainnet() {
       return localStorage.getItem('net') === mainnet
+    },
+    loadingTxn() {
+      return !this.blocks[0]?.transactions.length
     }
   },
   mounted() {
@@ -93,7 +94,6 @@ export default {
         const block = await web3.eth.getBlock(temp)
         this.blocks.push({ ...block })
       }
-      console.log(this.blocks[0])
       this.loading = false
     },
     timeFrom(time) {

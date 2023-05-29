@@ -1,13 +1,12 @@
 <template>
   <div class="detail-page">
     <strong>Processed Withdrawals</strong>
-    <p>
-      For Block <a :href="`/block/${detail.number}`" class="hash">{{ detail.number }}</a>
+    <p v-if="detail">
+      For Block <a :href="`/block/${detail?.number}`" class="hash">{{ detail?.number }}</a>
     </p>
-    <el-skeleton v-if="!detail" :rows="6" animated />
-    <div v-else class="list">
-      A total of {{ withdrawals.length }} withdrawals found
-      <div class="transaction-list card">
+    <div class="list">
+      <span v-if="detail"> A total of {{ withdrawals.length }} withdrawals found</span>
+      <div v-loading="loading" class="transaction-list card">
         <div class="transaction">
           <strong class="hash">Index</strong>
           <strong class="hash">Block</strong>
@@ -16,27 +15,32 @@
           <strong class="hashL">Recipient</strong>
           <strong class="hash">Value</strong>
         </div>
-        <div class="transaction" v-for="item in withdrawals" :key="item.index">
-          <span class="hash">{{ number(item.index) }}</span>
-          <span class="hash">
-            <a :href="`/block/${detail.number}`" class="hash">{{ detail.number }}</a>
-          </span>
+        <template v-if="withdrawals.length">
+          <div class="transaction" v-for="item in withdrawals" :key="item.index">
+            <span class="hash">{{ number(item.index) }}</span>
+            <span class="hash">
+              <a :href="`/block/${detail.number}`" class="hash">{{ detail.number }}</a>
+            </span>
 
-          <span class="hash">
-            <el-tooltip :content="timeFrom(detail.timestamp)" placement="top">
-              <p>{{ fromNow(detail.timestamp) }}</p>
-            </el-tooltip>
-          </span>
+            <span class="hash">
+              <el-tooltip :content="timeFrom(detail.timestamp)" placement="top">
+                <p>{{ fromNow(detail.timestamp) }}</p>
+              </el-tooltip>
+            </span>
 
-          <span class="hash">{{ number(item.validatorIndex) }}</span>
+            <span class="hash">{{ number(item.validatorIndex) }}</span>
 
-          <div class="hashL">
-            <a :href="`/address/${item.address}`">{{ address(item.address) }}</a>
-            <Copy class="ml-10" :text="item.address" />
+            <div class="hashL">
+              <a :href="`/address/${item.address}`">{{ address(item.address) }}</a>
+              <Copy class="ml-10" :text="item.address" />
+            </div>
+
+            <span class="hash">{{ toETH(number(item.amount)) }} ETH</span>
           </div>
-
-          <span class="hash">{{ toETH(number(item.amount)) }} ETH</span>
-        </div>
+        </template>
+        <template v-else-if="detail">
+          <span class="no-data">no data</span>
+        </template>
       </div>
     </div>
   </div>
@@ -58,7 +62,7 @@ export default {
   },
   computed: {
     withdrawals() {
-      return this.detail.withdrawals.reverse()
+      return this.detail?.withdrawals?.reverse() || []
     }
   },
   watch: {
@@ -87,6 +91,7 @@ export default {
       return text
     },
     async getDetail(num) {
+      this.loading = true
       try {
         const result = await getModel('block', { number: num })
         this.detail = Object.assign({}, result.data)
