@@ -87,7 +87,7 @@
                     <span>{{ address(tran.from) }}</span>
                   </el-tooltip>
                   <Copy class="copy" :text="tran.from" />
-                  <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                  <el-tag v-if="isAddress(tran.to)" type="success"
                     >In</el-tag
                   >
                   <el-tag v-else type="warning">Out</el-tag>
@@ -97,7 +97,7 @@
                     <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
                   </el-tooltip>
                   <Copy class="copy" :text="tran.from" />
-                  <el-tag v-if="tran.methodId === '0x' && isAddress(tran.to)" type="success"
+                  <el-tag v-if="isAddress(tran.to)" type="success"
                     >In</el-tag
                   >
                   <el-tag v-else type="warning">Out</el-tag>
