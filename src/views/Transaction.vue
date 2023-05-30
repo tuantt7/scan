@@ -22,7 +22,7 @@
 
             <span v-if="executionReverted" class="error-msg ml-10">
               Fail with error: {{ executionReverted }}
-              </span>
+            </span>
           </div>
           <div class="row">
             <span class="second">Block:</span>
@@ -39,13 +39,36 @@
           </div>
           <div class="row">
             <span class="second">To:</span>
-            <a :href="`/address/${detail.to || detail2.contractAddress}`" class="link">
-              {{ detail?.to || detail2?.contractAddress }}
-            </a>
-            <span v-if="detail2?.contractAddress" class="ml-10"
-              >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
-            ></span>
-            <Copy :text="detail?.to || detail2?.contractAddress" class="ml-10" />
+            <div class="to">
+              <div class="to-adr">
+                <a :href="`/address/${detail.to || detail2.contractAddress}`" class="link">
+                  {{ detail?.to || detail2?.contractAddress }}
+                </a>
+                <span v-if="detail2?.contractAddress" class="ml-10"
+                  >Contract created <el-icon color="#67c23a"><CircleCheck /></el-icon
+                ></span>
+                <Copy :text="detail?.to || detail2?.contractAddress" class="ml-10" />
+              </div>
+              <div class="in-txns">
+                <div v-for="(item, index) in internalTxn" :key="item.from + index" class="item-txn">
+                  <span class="s-text">Transfer</span>
+                  {{ toETH(item.value) }} ETH
+                  <span class="s-text"> from </span>
+                  <el-tooltip :content="item.from" placement="top">
+                    <a :href="`/address/${item.from}`" class="link">
+                      {{ address(item.from) }}
+                    </a>
+                  </el-tooltip>
+                  <span class="s-text"> to </span>
+
+                  <el-tooltip :content="item.to" placement="top">
+                    <a :href="`/address/${item.to}`" class="link">
+                      {{ address(item.to) }}
+                    </a>
+                  </el-tooltip>
+                </div>
+              </div>
+            </div>
           </div>
           <div v-if="logsLoading !== null" class="row">
             <span class="second">Tokens Transferred:</span>
@@ -222,7 +245,8 @@ export default {
       logs: [],
       view: 'overview',
       logsLoading: null,
-      executionReverted: ''
+      executionReverted: '',
+      internalTxn: []
     }
   },
   computed: {
@@ -257,12 +281,17 @@ export default {
     '$route.params.id': {
       handler(id) {
         this.getDetailTran(id)
+        this.getInternalTransactions(id)
       },
       deep: true,
       immediate: true
     }
   },
   methods: {
+    async getInternalTransactions(hash) {
+      const result = await getModel('in-txn', { hash })
+      this.internalTxn = result.data
+    },
     async getRevertReason() {
       const hash = this.$route.params.id
       const result = await getModel('revert', { hash })
@@ -307,6 +336,11 @@ export default {
     },
     timeAge(timeStamp) {
       return moment(moment.unix(timeStamp)).fromNow()
+    },
+    address(address) {
+      if (!address) return ''
+      const text = `${address.slice(0, 8)}...${address.substr(address.length - 8)}`
+      return text
     },
     async getLogs() {
       const result = await getModel('get-log', { hash: this.$route.params.id })
@@ -470,8 +504,14 @@ textarea {
   overflow: auto;
 }
 
-.link {
+.link,
+.in-txns,
+.to {
   overflow: auto;
+}
+
+.to-adr {
+  display: flex;
 }
 
 .wrap {
@@ -534,5 +574,24 @@ textarea {
 
 .error-msg {
   color: #f56c6c;
+}
+
+.s-text {
+  color: #6c757d;
+}
+
+.item-txn {
+  margin-left: 15px;
+  position: relative;
+  &::before {
+    position: absolute;
+    top: 8px;
+    left: -15px;
+    content: '';
+    width: 8px;
+    height: 6px;
+    border-left: solid 1px #0784c3;
+    border-bottom: solid 1px #0784c3;
+  }
 }
 </style>
