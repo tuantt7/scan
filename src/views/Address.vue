@@ -6,6 +6,11 @@
         <strong>{{ addressType }}</strong>
         <span class="ml-10 address">{{ $route.params.id }}</span>
         <Copy :text="$route.params.id" class="ml-10" />
+        <el-tag v-if="verified" class="ml-10 verify" type="success" size="large">
+          Verified
+          <el-icon><CircleCheck /></el-icon>
+        </el-tag>
+        <el-tag v-else class="ml-10 verify" type="info">Not Verify</el-tag>
       </div>
     </div>
     <el-skeleton v-if="!balance" :rows="4" animated />
@@ -87,9 +92,7 @@
                     <span>{{ address(tran.from) }}</span>
                   </el-tooltip>
                   <Copy class="copy" :text="tran.from" />
-                  <el-tag v-if="isAddress(tran.to)" type="success"
-                    >In</el-tag
-                  >
+                  <el-tag v-if="isAddress(tran.to)" type="success">In</el-tag>
                   <el-tag v-else type="warning">Out</el-tag>
                 </div>
                 <div v-else class="hashF">
@@ -97,9 +100,7 @@
                     <a :href="`/address/${tran.from}`" class="text">{{ address(tran.from) }}</a>
                   </el-tooltip>
                   <Copy class="copy" :text="tran.from" />
-                  <el-tag v-if="isAddress(tran.to)" type="success"
-                    >In</el-tag
-                  >
+                  <el-tag v-if="isAddress(tran.to)" type="success">In</el-tag>
                   <el-tag v-else type="warning">Out</el-tag>
                 </div>
 
@@ -235,7 +236,8 @@ export default {
       blocks: [],
       blockPage: 1,
       totalblocks: 0,
-      loadingBlock: true
+      loadingBlock: true,
+      verified: true
     }
   },
   computed: {
@@ -298,6 +300,7 @@ export default {
       this.balance = result.data.balance
       this.firstTransaction = result.data.firstTransaction
       this.addressType = result.data.type
+      this.verified = result.data.verified
     },
     async getTransactions(address) {
       const params = {
@@ -499,6 +502,21 @@ export default {
   text-align: center;
   padding: 0 20px;
   border-radius: 4px;
+}
+
+.el-tag ::v-deep(.el-tag__content) {
+  display: flex;
+  align-items: center;
+}
+
+.el-tag ::v-deep(.el-icon) {
+  margin-left: 5px;
+  font-size: 15px;
+}
+
+.verify {
+  width: unset;
+  font-size: 15px;
 }
 
 @media only screen and (max-width: 992px) {
