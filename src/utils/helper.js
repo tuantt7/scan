@@ -63,3 +63,7 @@ export const fromNow = function (timeStamp) {
 export const isNumeric = (str) => {
   return /^-?\d+$/.test(str)
 }
+
+export const formatNumber = (num) => {
+  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}

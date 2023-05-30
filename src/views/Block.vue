@@ -98,7 +98,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
-import { fromNow } from '@/utils/helper.js'
+import { fromNow, formatNumber } from '@/utils/helper.js'
 import { getModel } from '@/mainApi.js'
 import moment from 'moment'
 
@@ -145,6 +145,7 @@ export default {
   },
   methods: {
     fromNow,
+    formatNumber,
     async viewNextBlock() {
       if (this.detail.number >= this.latest) {
         this.$toast.open({
@@ -160,9 +161,6 @@ export default {
     viewPreBlock() {
       const block = this.detail.number - 1
       this.$router.push({ name: 'block', params: { id: block } })
-    },
-    formatNumber(num) {
-      return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
     },
     goToAddress(address) {
       this.$router.push({ name: 'address', params: { id: address } })

@@ -221,7 +221,7 @@
 import web3 from '@/utils/web3'
 import moment from 'moment'
 import { postModel, getModel } from '@/mainApi.js'
-import { fromNow } from '@/utils/helper.js'
+import { fromNow, formatNumber } from '@/utils/helper.js'
 
 const network = localStorage.getItem('net')
 const mainnet = import.meta.env.VITE_MAINNET_NETWORK
@@ -288,6 +288,7 @@ export default {
     }
   },
   methods: {
+    formatNumber,
     async getInternalTransactions(hash) {
       const result = await getModel('in-txn', { hash })
       this.internalTxn = result.data
@@ -316,9 +317,6 @@ export default {
       return val || `${item.value / Math.pow(10, item.decimals)} ${item.name} (${item.symbol})`
     },
     fromNow,
-    formatNumber(num) {
-      return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
-    },
     goToBlock(block) {
       this.$router.push({ name: 'block', params: { id: block } })
     },
