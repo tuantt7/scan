@@ -6,11 +6,11 @@
         <strong>{{ addressType }}</strong>
         <span class="ml-10 address">{{ $route.params.id }}</span>
         <Copy :text="$route.params.id" class="ml-10" />
-        <el-tag v-if="verified" class="ml-10 verify" type="success" size="large">
+        <el-tag v-if="verified && isContract" class="ml-10 verify" type="success" size="large">
           Verified
           <el-icon><CircleCheck /></el-icon>
         </el-tag>
-        <el-tag v-else class="ml-10 verify" type="info">Not Verify</el-tag>
+        <el-tag v-else-if="isContract" class="ml-10 verify" type="info">Not Verify</el-tag>
       </div>
     </div>
     <el-skeleton v-if="!balance" :rows="4" animated />
@@ -250,6 +250,9 @@ export default {
     },
     ETHbalance() {
       return this.balance.toString().slice(0, 15) + ' ETH'
+    },
+    isContract() {
+      return this.addressType === 'Contract'
     }
   },
   watch: {
@@ -486,6 +489,7 @@ export default {
 
 .el-tabs {
   margin-top: 20px;
+  z-index: 1;
 }
 
 .el-tabs ::v-deep(.el-tabs__nav-wrap::after) {

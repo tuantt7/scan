@@ -176,7 +176,7 @@ export default {
   max-width: 1200px;
   width: 100%;
   margin: auto;
-  z-index: 1;
+  z-index: 999;
   background-color: #fff;
 }
 .type {
