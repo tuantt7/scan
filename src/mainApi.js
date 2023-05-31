@@ -8,7 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  baseURL: URL
+  baseURL: ' http://localhost:3000'
 })
 
 api.interceptors.response.use(
