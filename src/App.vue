@@ -15,7 +15,7 @@
             <el-icon><Search /></el-icon>
           </template>
         </el-input>
-        <el-select v-model="value" @change="changeValue">
+        <el-select v-model="value" class="lang" @change="changeValue">
           <el-option label="Sepolia" value="sepolia" />
           <el-option label="Mainnet" value="mainnet" />
         </el-select>
@@ -187,5 +187,16 @@ export default {
 
 .search {
   margin-right: 15px;
+}
+
+@media only screen and (max-width: 768px) {
+  .lang{
+    width: calc(100% - 30px);
+    margin: 15px;
+  }
+  .search {
+    width: calc(100% - 30px);
+    margin: 15px;
+  }
 }
 </style>
