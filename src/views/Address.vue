@@ -219,7 +219,7 @@ import { fromNow } from '@/utils/helper.js'
 import moment from 'moment'
 import { mapState, mapActions } from 'pinia'
 import { useAddressStore } from '@/stores/address.js'
-import { getModel } from '@/mainApi.js'
+import { getModel } from '@/api/index.js'
 export default {
   name: 'HomePage',
   data() {

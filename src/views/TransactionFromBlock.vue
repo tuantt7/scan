@@ -71,7 +71,7 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '@/mainApi.js'
+import { getModel } from '@/api/index.js'
 import { fromNow } from '@/utils/helper.js'
 export default {
   name: 'HomePage',

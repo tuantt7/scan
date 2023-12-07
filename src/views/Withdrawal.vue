@@ -48,7 +48,7 @@
 <script>
 import web3 from '@/utils/web3'
 import moment from 'moment'
-import { getModel } from '@/mainApi.js'
+import { getModel } from '@/api/index.js'
 import { fromNow } from '@/utils/helper.js'
 
 export default {
@@ -62,7 +62,7 @@ export default {
   },
   computed: {
     withdrawals() {
-      return this.detail?.withdrawals?.reverse() || []
+      return this.detail?.withdrawals?.slice(0).reverse() || []
     }
   },
   watch: {

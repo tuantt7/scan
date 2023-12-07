@@ -26,7 +26,7 @@
 </template>
 <script>
 import web3 from '@/utils/web3'
-import { getModel } from '@/mainApi.js'
+import { getModel } from '@/api/index.js'
 import { isNumeric } from '@/utils/helper'
 
 export default {

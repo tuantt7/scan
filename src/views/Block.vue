@@ -99,7 +99,7 @@
 <script>
 import web3 from '@/utils/web3'
 import { fromNow, formatNumber } from '@/utils/helper.js'
-import { getModel } from '@/mainApi.js'
+import { getModel } from '@/api/index.js'
 import moment from 'moment'
 
 export default {
