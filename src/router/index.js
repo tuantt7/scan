@@ -47,6 +47,11 @@ const router = createRouter({
       name: 'withdrawal',
       component: Withdrawal
     },
+    {
+      path: '/send',
+      name: 'send',
+      component: () => import('../views/Send.vue')
+    }
   ]
 })
 

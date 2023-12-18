@@ -1,3 +1,4 @@
+import './assets/tailwin/index.css'
 import './assets/main.css'
 
 import { createApp } from 'vue'
@@ -13,6 +14,7 @@ import ToastPlugin from 'vue-toast-notification'
 import 'vue-toast-notification/dist/theme-default.css'
 
 const app = createApp(App)
+// eslint-disable-next-line vue/multi-word-component-names
 app.component('Copy', Copy)
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

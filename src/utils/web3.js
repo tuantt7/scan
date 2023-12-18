@@ -10,8 +10,25 @@ if (!localStorage.getItem('net')) {
 }
 const net = localStorage.getItem('net')
 const network = net === sepoliaNetwork ? sepoliaNetwork : mainnetNetwork
+let web3 = null
+// const web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${apiKey}`))
+if (window.ethereum) {
+  web3 = new Web3(window.ethereum);
+  try {
+    // Request account access if needed
+    await window.ethereum.enable();
+    // Accounts now exposed
+  } catch (error) {
+    console.error(error);
+  }
+}
+// Fallback to localhost; use dev console port by default...
+else {
+  web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${apiKey}`))
+  console.log('No web3 instance injected, using Local web3.');
+}
 
-const web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${apiKey}`))
+
 
 // const signer = web3.eth.accounts.privateKeyToAccount(privateKey)
 // web3.eth.accounts.wallet.add(signer)

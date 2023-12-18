@@ -369,7 +369,6 @@ export default {
   margin: auto;
   margin-top: 20px;
   overflow: hidden;
-  padding: 0 15px;
 }
 
 .over-view {
@@ -419,7 +418,6 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 30px;
 }
 
 .hashA {
