@@ -16,7 +16,7 @@ if (window.ethereum) {
   web3 = new Web3(window.ethereum);
   try {
     // Request account access if needed
-    await window.ethereum.enable();
+    window.ethereum.enable();
     // Accounts now exposed
   } catch (error) {
     console.error(error);
